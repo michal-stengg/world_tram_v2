@@ -1,0 +1,76 @@
+import { describe, it, expect } from 'vitest'
+import { cycleRole, calculateEngineerBonus } from '../../logic/crew'
+import type { CrewRole } from '../../types'
+
+describe('crew logic', () => {
+  describe('cycleRole', () => {
+    it('should cycle engineer to cook', () => {
+      const result = cycleRole('engineer')
+      expect(result).toBe('cook')
+    })
+
+    it('should cycle cook to security', () => {
+      const result = cycleRole('cook')
+      expect(result).toBe('security')
+    })
+
+    it('should cycle security to free', () => {
+      const result = cycleRole('security')
+      expect(result).toBe('free')
+    })
+
+    it('should cycle free back to engineer', () => {
+      const result = cycleRole('free')
+      expect(result).toBe('engineer')
+    })
+
+    it('should complete a full cycle back to the starting role', () => {
+      const startRole: CrewRole = 'engineer'
+      let role: CrewRole = startRole
+
+      // Cycle through all four roles
+      role = cycleRole(role) // engineer -> cook
+      role = cycleRole(role) // cook -> security
+      role = cycleRole(role) // security -> free
+      role = cycleRole(role) // free -> engineer
+
+      expect(role).toBe(startRole)
+    })
+  })
+
+  describe('calculateEngineerBonus', () => {
+    it('should return 0 fuel savings with 0 engineers', () => {
+      const result = calculateEngineerBonus(0)
+      expect(result).toBe(0)
+    })
+
+    it('should return 2 fuel savings with 1 engineer', () => {
+      const result = calculateEngineerBonus(1)
+      expect(result).toBe(2)
+    })
+
+    it('should return 4 fuel savings with 2 engineers', () => {
+      const result = calculateEngineerBonus(2)
+      expect(result).toBe(4)
+    })
+
+    it('should return 6 fuel savings with 3 engineers', () => {
+      const result = calculateEngineerBonus(3)
+      expect(result).toBe(6)
+    })
+
+    it('should handle negative engineer count as 0', () => {
+      const result = calculateEngineerBonus(-1)
+      expect(result).toBe(0)
+    })
+
+    it('should scale linearly with engineer count', () => {
+      const bonus1 = calculateEngineerBonus(1)
+      const bonus2 = calculateEngineerBonus(2)
+      const bonus4 = calculateEngineerBonus(4)
+
+      expect(bonus2).toBe(bonus1 * 2)
+      expect(bonus4).toBe(bonus1 * 4)
+    })
+  })
+})

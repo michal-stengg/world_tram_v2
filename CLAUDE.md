@@ -19,9 +19,8 @@ All code changes must follow TDD. See [TDD section](#test-driven-development-tdd
 
 | Agent Type | Purpose | Tools Available |
 |------------|---------|-----------------|
-| **Coding Agent** | Implements features, writes code | Read, Write, Edit, Glob, Grep, Bash |
-| **Testing Agent** | Writes tests, runs test suites | Read, Write, Edit, Bash (npm test) |
-| **Verification Agent** | Validates implementation, runs full checks | Read, Glob, Grep, Bash |
+| **Development Agent** | Implements features AND writes tests (TDD) | Read, Write, Edit, Glob, Grep, Bash |
+| **Verification Agent** | Validates phase completion, runs full checks | Read, Glob, Grep, Bash |
 
 ### Orchestrator Responsibilities
 
@@ -38,68 +37,68 @@ All code changes must follow TDD. See [TDD section](#test-driven-development-tdd
 │  1. Read issues.md                                          │
 │  2. Find task with [ ] status                               │
 │  3. Mark task as [o] BEFORE spawning agent                  │
-│  4. Spawn appropriate subagent with task details            │
+│  4. Spawn Development Agent with task details               │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  CODING AGENT (implements feature)                          │
+│  DEVELOPMENT AGENT (implements + tests)                     │
 │  1. Read requirements from task                             │
-│  2. Implement code following TDD                            │
-│  3. Return result to orchestrator                           │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│  TESTING AGENT (writes/runs tests)                          │
-│  1. Write tests for the implementation                      │
-│  2. Run tests and report results                            │
-│  3. Return pass/fail status                                 │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│  VERIFICATION AGENT (validates everything)                  │
-│  1. Run full test suite                                     │
-│  2. Check for regressions                                   │
-│  3. Verify integration points                               │
-│  4. Report final status                                     │
+│  2. Write failing test first (TDD)                          │
+│  3. Implement minimum code to pass test                     │
+│  4. Run tests, ensure passing                               │
+│  5. Return result to orchestrator                           │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  ORCHESTRATOR                                               │
-│  - If all pass: Mark task [x]                               │
+│  - If tests pass: Mark task [x]                             │
 │  - If issues found: Mark task [!] with notes                │
+│  - At end of phase: Spawn Verification Agent                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ (only at phase completion)
+┌─────────────────────────────────────────────────────────────┐
+│  VERIFICATION AGENT (phase validation)                      │
+│  1. Run full test suite                                     │
+│  2. Check for regressions                                   │
+│  3. Run production build                                    │
+│  4. Report final phase status                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Spawning Subagents
 
-When spawning a subagent, provide:
+When spawning a Development Agent, provide:
 1. **Clear task description** from issues.md
 2. **File paths** the agent needs to work with
-3. **Acceptance criteria** for completion
-4. **Dependencies** on other completed tasks
+3. **Test file path** for TDD
+4. **Acceptance criteria** for completion
 
-Example prompt for coding agent:
+Example prompt for Development Agent:
 ```
-Implement the IntroScreen component.
+Implement the IntroScreen component with tests.
 
-Task: Create src/components/IntroScreen.tsx
+Task: Create src/components/screens/IntroScreen.tsx
+Test: src/__tests__/components/IntroScreen.test.tsx
+
 Requirements:
 - Display game title "WORLD TRAM"
 - Display subtitle "A Turn-Based Railway Adventure"
 - Include "START GAME" button that calls onStart prop
 - Use pixel art styling from design system
 
-Files to create:
-- src/components/IntroScreen.tsx
+TDD Approach:
+1. First write test that renders component and checks for title
+2. Then implement component to pass test
+3. Add test for button click behavior
+4. Implement button functionality
 
 Acceptance criteria:
+- All tests passing
 - Component renders without errors
 - Button triggers onStart callback when clicked
-- Styling matches pixel art theme
 ```
 
 ## Development Workflow
@@ -161,6 +160,9 @@ All project tasks are tracked in: **`issues.md`**
 1. **Mark the task `[o]`** in issues.md FIRST
 2. **Then spawn** the subagent to work on it
 3. **Never** spawn an agent without marking the task in progress
+4. **Never** pick a task that is `[o]` or `[x]`
+5. **Never** take over a task marked `[o]` and DO NOT spawn subagents if you did not mark the task `[o]`  in issues.md
+6. **Only** agent that marked the task `[o]` can spawn subagents to work on it
 
 This prevents multiple agents from working on the same task.
 
@@ -193,14 +195,17 @@ Tasks are organized by feature area. Each task should be:
    - **Mark `[ ]` → `[o]` IMMEDIATELY**
 
 2. **Execute task:**
-   - Spawn coding agent to implement
-   - Spawn testing agent to write/run tests
-   - Spawn verification agent if needed
+   - Spawn **single Development Agent** to implement code AND tests
+   - Agent follows TDD: test first, then implementation
 
 3. **Mark completion:**
    - All tests pass → Mark `[o]` → `[x]`
    - Issues found → Mark `[o]` → `[!]` with notes
    - Never mark `[x]` without passing tests
+
+4. **Phase completion:**
+   - After all tasks in a phase are `[x]`
+   - Spawn **Verification Agent** to run full test suite and build
 
 ## Test-Driven Development (TDD)
 
@@ -236,19 +241,14 @@ A task can ONLY be marked `[x]` when:
 1. The implementation is complete
 2. Tests are written and passing
 3. No regressions in existing tests
-4. Verification agent confirms success
 
 ## System Verification
 
-After completing a feature group:
+**Spawn a Verification Agent at the end of each phase** to:
 
 1. **Run the full test suite** - `npm test`
 2. **Run the build** - `npm run build`
 3. **Check for regressions** - ensure existing functionality works
 4. **Manual smoke test** - run `npm run dev` and check core flows
 
-**Spawn a Verification Agent when:**
-- Completing a feature that spans multiple files
-- Finishing a group of related tasks
-- Before marking a milestone complete
-- When changes touch shared utilities or core logic
+This reduces verification overhead - only verify once per phase instead of per task.

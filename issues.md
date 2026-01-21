@@ -18,18 +18,19 @@
 
 ---
 
-## 1.1 Project Setup
+## 1.1 Project Setup (ALL PARALLEL - no dependencies between tasks)
 
 ### 1.1.1 Testing Infrastructure
-- [ ] Configure Vitest with React Testing Library
+- [x] Configure Vitest with React Testing Library
   - Files to create:
     - `vitest.config.ts`
     - `src/setupTests.ts`
   - Acceptance: `npm test` runs successfully
   - Depends: none
+  - **Parallel: yes**
 
 ### 1.1.2 TypeScript Types
-- [ ] Create core type definitions
+- [x] Create core type definitions
   - File: `src/types/index.ts`
   - Types:
     - `GameScreen` enum: intro, captainSelect, trainSelect, dashboard, victory, gameOver
@@ -39,30 +40,33 @@
     - `CrewMember` (id, name, role)
     - `Resources` (food, fuel, water, money)
   - Depends: none
+  - **Parallel: yes**
 
 ### 1.1.3 Global Styles
-- [ ] Set up CSS variables and pixel art theme
+- [x] Set up CSS variables and pixel art theme
   - File: `src/index.css`
   - Include:
     - Color palette from PRD
     - `.pixel-art { image-rendering: pixelated; }`
     - Base reset and typography
   - Depends: none
+  - **Parallel: yes**
 
 ---
 
 ## 1.2 Navigation State
 
-### 1.2.1 Navigation Store
-- [ ] Create Zustand store for screen navigation only
-  - File: `src/stores/navigationStore.ts`
-  - Tests: `src/__tests__/stores/navigationStore.test.ts`
+### 1.2.1 Game Store with Navigation
+- [x] Create Zustand store with navigation state (skipping separate navigationStore)
+  - File: `src/stores/gameStore.ts`
+  - Tests: `src/__tests__/stores/gameStore.test.ts`
   - State: `currentScreen: GameScreen`
   - Actions: `setScreen(screen)`, `goBack()`
+  - Note: This store will be extended in later phases to add game state
   - Depends: 1.1.2
 
 ### 1.2.2 App Router
-- [ ] Wire App.tsx to render screens based on navigation state
+- [x] Wire App.tsx to render screens based on game store navigation state
   - File: `src/App.tsx`
   - Tests: `src/__tests__/App.test.tsx`
   - Renders correct screen component based on currentScreen
@@ -73,75 +77,83 @@
 ## 1.3 Screen Shells (Placeholder Content)
 
 ### 1.3.1 PixelButton Component
-- [ ] Create reusable button component
+- [x] Create reusable button component
   - File: `src/components/common/PixelButton.tsx`
   - Tests: `src/__tests__/components/PixelButton.test.tsx`
   - Props: children, onClick, variant, disabled
   - Depends: 1.1.3
 
+### 1.3.2-1.3.7 Screen Components (ALL PARALLEL after PixelButton + Store)
+
 ### 1.3.2 IntroScreen
-- [ ] Create intro screen with navigation
+- [x] Create intro screen with navigation
   - File: `src/components/screens/IntroScreen.tsx`
   - Tests: `src/__tests__/components/IntroScreen.test.tsx`
   - Elements: Title "WORLD TRAM", subtitle, START button
   - START → navigates to captainSelect
   - Depends: 1.3.1, 1.2.1
+  - **Parallel: yes (with 1.3.3-1.3.7)**
 
 ### 1.3.3 CaptainSelection Shell
-- [ ] Create captain selection with placeholder cards
+- [x] Create captain selection with placeholder cards
   - File: `src/components/screens/CaptainSelection.tsx`
   - Tests: `src/__tests__/components/CaptainSelection.test.tsx`
   - Elements: Header, 3 placeholder cards (just names), back button
   - Click card → navigates to trainSelect
   - Back → navigates to intro
   - Depends: 1.3.1, 1.2.1
+  - **Parallel: yes (with 1.3.2, 1.3.4-1.3.7)**
 
 ### 1.3.4 TrainSelection Shell
-- [ ] Create train selection with placeholder cards
+- [x] Create train selection with placeholder cards
   - File: `src/components/screens/TrainSelection.tsx`
   - Tests: `src/__tests__/components/TrainSelection.test.tsx`
   - Elements: Header, 3 placeholder cards (just names), back button
   - Click card → navigates to dashboard
   - Back → navigates to captainSelect
   - Depends: 1.3.1, 1.2.1
+  - **Parallel: yes (with 1.3.2-1.3.3, 1.3.5-1.3.7)**
 
 ### 1.3.5 Dashboard Shell
-- [ ] Create dashboard layout with placeholder zones
+- [x] Create dashboard layout with placeholder zones
   - File: `src/components/screens/Dashboard.tsx`
   - Tests: `src/__tests__/components/Dashboard.test.tsx`
   - Layout: Top (resource placeholder), Center (journey placeholder), Bottom (GO button)
   - GO button → navigates to victory (for now)
   - Depends: 1.3.1, 1.2.1
+  - **Parallel: yes (with 1.3.2-1.3.4, 1.3.6-1.3.7)**
 
 ### 1.3.6 VictoryScreen
-- [ ] Create victory screen
+- [x] Create victory screen
   - File: `src/components/screens/VictoryScreen.tsx`
   - Tests: `src/__tests__/components/VictoryScreen.test.tsx`
   - Elements: "VICTORY!" header, placeholder turn count, NEW GAME button
   - NEW GAME → navigates to captainSelect
   - Depends: 1.3.1, 1.2.1
+  - **Parallel: yes (with 1.3.2-1.3.5, 1.3.7)**
 
 ### 1.3.7 GameOverScreen
-- [ ] Create game over screen
+- [x] Create game over screen
   - File: `src/components/screens/GameOverScreen.tsx`
   - Tests: `src/__tests__/components/GameOverScreen.test.tsx`
   - Elements: "GAME OVER" header, placeholder reason, TRY AGAIN button
   - TRY AGAIN → navigates to captainSelect
   - Depends: 1.3.1, 1.2.1
+  - **Parallel: yes (with 1.3.2-1.3.6)**
 
 ---
 
 ## 1.4 Phase 1 Verification
 
 ### 1.4.1 Integration Test
-- [ ] Test complete navigation flow
+- [x] Test complete navigation flow
   - File: `src/__tests__/integration/phase1-navigation.test.tsx`
   - Test: intro → captainSelect → trainSelect → dashboard → victory
   - Test: back buttons work correctly
   - Depends: all 1.3.x tasks
 
 ### 1.4.2 Manual Smoke Test
-- [ ] Verify clickable prototype works
+- [x] Verify clickable prototype works
   - Run: `npm run dev`
   - Test: Click through entire flow
   - Test: Back buttons navigate correctly
@@ -157,10 +169,10 @@
 
 ---
 
-## 2.1 Static Data
+## 2.1 Static Data (ALL PARALLEL - only depend on types)
 
 ### 2.1.1 Captain Data
-- [ ] Create captain definitions
+- [x] Create captain definitions
   - File: `src/data/captains.ts`
   - Tests: `src/__tests__/data/captains.test.ts`
   - Data:
@@ -169,9 +181,10 @@
     - Cooper (USA): Engineering 3, Food 2, Security 5
   - Export: `captains: Captain[]`, `getCaptainById(id): Captain`
   - Depends: 1.1.2
+  - **Parallel: yes (with 2.1.2, 2.1.3)**
 
 ### 2.1.2 Train Data
-- [ ] Create train definitions
+- [x] Create train definitions
   - File: `src/data/trains.ts`
   - Tests: `src/__tests__/data/trains.test.ts`
   - Data:
@@ -180,9 +193,10 @@
     - Ironhorse (USA): Speed 3, Reliability 3, Power 5
   - Export: `trains: Train[]`, `getTrainById(id): Train`
   - Depends: 1.1.2
+  - **Parallel: yes (with 2.1.1, 2.1.3)**
 
 ### 2.1.3 Country Data
-- [ ] Create country route definitions
+- [x] Create country route definitions
   - File: `src/data/countries.ts`
   - Tests: `src/__tests__/data/countries.test.ts`
   - Data (10 countries):
@@ -190,17 +204,18 @@
     - Singapore 🌴, Australia 🦘, Brazil 🎭, Canada 🍁, USA 🗽
   - Each: id, name, icon, landmark, distanceRequired (10)
   - Depends: 1.1.2
+  - **Parallel: yes (with 2.1.1, 2.1.2)**
 
 ---
 
 ## 2.2 Selection State
 
 ### 2.2.1 Selection Store
-- [ ] Extend store with selection state
-  - File: `src/stores/gameStore.ts` (new file, will absorb navigationStore)
-  - Tests: `src/__tests__/stores/gameStore.test.ts`
-  - State: currentScreen, selectedCaptain, selectedTrain
-  - Actions: selectCaptain(captain), selectTrain(train), resetSelection()
+- [x] Extend gameStore with selection state
+  - File: `src/stores/gameStore.ts` (extend existing)
+  - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
+  - Add state: selectedCaptain, selectedTrain
+  - Add actions: selectCaptain(captain), selectTrain(train), resetSelection()
   - Depends: 1.2.1, 2.1.1, 2.1.2
 
 ---
@@ -208,7 +223,7 @@
 ## 2.3 Selection UI Components
 
 ### 2.3.1 StatBar Component
-- [ ] Create stat display bar
+- [x] Create stat display bar
   - File: `src/components/common/StatBar.tsx`
   - Tests: `src/__tests__/components/StatBar.test.tsx`
   - Props: label, value (1-6), maxValue (6), color
@@ -216,7 +231,7 @@
   - Depends: 1.1.3
 
 ### 2.3.2 CaptainCard Component
-- [ ] Create captain card with full details
+- [x] Create captain card with full details
   - File: `src/components/game/CaptainCard.tsx`
   - Tests: `src/__tests__/components/CaptainCard.test.tsx`
   - Props: captain, selected, onSelect
@@ -224,7 +239,7 @@
   - Depends: 2.3.1, 2.1.1
 
 ### 2.3.3 TrainCard Component
-- [ ] Create train card with full details
+- [x] Create train card with full details
   - File: `src/components/game/TrainCard.tsx`
   - Tests: `src/__tests__/components/TrainCard.test.tsx`
   - Props: train, selected, onSelect
@@ -236,7 +251,7 @@
 ## 2.4 Upgrade Selection Screens
 
 ### 2.4.1 CaptainSelection with Real Data
-- [ ] Update CaptainSelection to use real captains
+- [x] Update CaptainSelection to use real captains
   - File: `src/components/screens/CaptainSelection.tsx` (update)
   - Tests: `src/__tests__/components/CaptainSelection.test.tsx` (update)
   - Shows: 3 CaptainCards from data
@@ -244,7 +259,7 @@
   - Depends: 2.3.2, 2.2.1
 
 ### 2.4.2 TrainSelection with Real Data
-- [ ] Update TrainSelection to use real trains
+- [x] Update TrainSelection to use real trains
   - File: `src/components/screens/TrainSelection.tsx` (update)
   - Tests: `src/__tests__/components/TrainSelection.test.tsx` (update)
   - Shows: 3 TrainCards from data
@@ -252,7 +267,7 @@
   - Depends: 2.3.3, 2.2.1
 
 ### 2.4.3 Dashboard Shows Selection
-- [ ] Update Dashboard to display selected captain/train names
+- [x] Update Dashboard to display selected captain/train names
   - File: `src/components/screens/Dashboard.tsx` (update)
   - Tests: `src/__tests__/components/Dashboard.test.tsx` (update)
   - Shows: "Captain: [name]" and "Train: [name]" in header area
@@ -263,14 +278,14 @@
 ## 2.5 Phase 2 Verification
 
 ### 2.5.1 Integration Test
-- [ ] Test selection flow with real data
+- [x] Test selection flow with real data
   - File: `src/__tests__/integration/phase2-selection.test.tsx`
   - Test: Select captain → verify stored → select train → verify stored
   - Test: Dashboard displays selected captain and train
   - Depends: all 2.4.x tasks
 
 ### 2.5.2 Manual Smoke Test
-- [ ] Verify selection screens work
+- [x] Verify selection screens work
   - Run: `npm run dev`
   - Test: See all 3 captains with stats
   - Test: Select captain, see all 3 trains with stats
@@ -290,7 +305,7 @@
 ## 3.1 Game Constants & Initial State
 
 ### 3.1.1 Game Constants
-- [ ] Create game balance constants
+- [x] Create game balance constants
   - File: `src/data/constants.ts`
   - Tests: `src/__tests__/data/constants.test.ts`
   - Starting resources: food=50, fuel=100, water=50, money=200
@@ -298,14 +313,14 @@
   - Depends: none
 
 ### 3.1.2 Crew Data
-- [ ] Create starting crew definitions
+- [x] Create starting crew definitions
   - File: `src/data/crew.ts`
   - Tests: `src/__tests__/data/crew.test.ts`
   - Starting crew: Tom (Engineer), Maria (Cook), Jack (Security), Sam (Free)
   - Depends: 1.1.2
 
 ### 3.1.3 Game State Extension
-- [ ] Extend gameStore with game state
+- [x] Extend gameStore with game state
   - File: `src/stores/gameStore.ts` (extend)
   - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
   - Add state: resources, crew, currentCountryIndex, progressInCountry, turnCount
@@ -317,7 +332,7 @@
 ## 3.2 Resource Display Components
 
 ### 3.2.1 ResourceMeter Component
-- [ ] Create resource meter display
+- [x] Create resource meter display
   - File: `src/components/common/ResourceMeter.tsx`
   - Tests: `src/__tests__/components/ResourceMeter.test.tsx`
   - Props: icon, label, current, max, color
@@ -325,7 +340,7 @@
   - Depends: 1.1.3
 
 ### 3.2.2 ResourceBar Component
-- [ ] Create top resource bar with all meters
+- [x] Create top resource bar with all meters
   - File: `src/components/game/ResourceBar.tsx`
   - Tests: `src/__tests__/components/ResourceBar.test.tsx`
   - Shows: 4 ResourceMeters + Turn counter
@@ -337,7 +352,7 @@
 ## 3.3 Journey Display Components
 
 ### 3.3.1 CountryMarker Component
-- [ ] Create individual country marker
+- [x] Create individual country marker
   - File: `src/components/game/CountryMarker.tsx`
   - Tests: `src/__tests__/components/CountryMarker.test.tsx`
   - Props: country, status (visited/current/upcoming)
@@ -345,7 +360,7 @@
   - Depends: 2.1.3
 
 ### 3.3.2 JourneyTrack Component
-- [ ] Create journey visualization
+- [x] Create journey visualization
   - File: `src/components/game/JourneyTrack.tsx`
   - Tests: `src/__tests__/components/JourneyTrack.test.tsx`
   - Shows: Horizontal track with 10 CountryMarkers
@@ -358,7 +373,7 @@
 ## 3.4 Crew Display Components
 
 ### 3.4.1 CrewMember Component
-- [ ] Create individual crew member display
+- [x] Create individual crew member display
   - File: `src/components/game/CrewMember.tsx`
   - Tests: `src/__tests__/components/CrewMember.test.tsx`
   - Props: member, onRoleClick (disabled for now)
@@ -366,7 +381,7 @@
   - Depends: 1.1.3
 
 ### 3.4.2 CrewPanel Component
-- [ ] Create crew display panel
+- [x] Create crew display panel
   - File: `src/components/game/CrewPanel.tsx`
   - Tests: `src/__tests__/components/CrewPanel.test.tsx`
   - Shows: Row of 4 CrewMember components
@@ -377,7 +392,7 @@
 ## 3.5 Assemble Dashboard
 
 ### 3.5.1 Dashboard with Real Components
-- [ ] Update Dashboard to use all real components
+- [x] Update Dashboard to use all real components
   - File: `src/components/screens/Dashboard.tsx` (update)
   - Tests: `src/__tests__/components/Dashboard.test.tsx` (update)
   - Layout:
@@ -392,7 +407,7 @@
 ## 3.6 Phase 3 Verification
 
 ### 3.6.1 Integration Test
-- [ ] Test dashboard displays all data correctly
+- [x] Test dashboard displays all data correctly
   - File: `src/__tests__/integration/phase3-dashboard.test.tsx`
   - Test: Resources show correct initial values
   - Test: All 10 countries displayed, France marked current
@@ -400,7 +415,7 @@
   - Depends: 3.5.1
 
 ### 3.6.2 Manual Smoke Test
-- [ ] Verify dashboard displays correctly
+- [x] Verify dashboard displays correctly
   - Run: `npm run dev`
   - Test: Complete selection flow
   - Test: See all resources with correct starting values
@@ -421,7 +436,7 @@
 ## 4.1 Core Game Logic
 
 ### 4.1.1 Dice Rolling
-- [ ] Implement dice roll logic
+- [x] Implement dice roll logic
   - File: `src/logic/dice.ts`
   - Tests: `src/__tests__/logic/dice.test.ts`
   - Functions:
@@ -431,7 +446,7 @@
   - Depends: none
 
 ### 4.1.2 Movement Logic
-- [ ] Implement movement calculation
+- [x] Implement movement calculation
   - File: `src/logic/movement.ts`
   - Tests: `src/__tests__/logic/movement.test.ts`
   - Functions:
@@ -440,7 +455,7 @@
   - Depends: 4.1.1
 
 ### 4.1.3 Resource Consumption Logic
-- [ ] Implement resource consumption per turn
+- [x] Implement resource consumption per turn
   - File: `src/logic/resources.ts`
   - Tests: `src/__tests__/logic/resources.test.ts`
   - Functions:
@@ -452,7 +467,7 @@
   - Depends: 1.1.2
 
 ### 4.1.4 Resource Production Logic
-- [ ] Implement resource production per turn
+- [x] Implement resource production per turn
   - File: `src/logic/resources.ts` (extend)
   - Tests: `src/__tests__/logic/resources.test.ts` (extend)
   - Functions:
@@ -462,7 +477,7 @@
   - Depends: 4.1.3
 
 ### 4.1.5 Win/Lose Conditions
-- [ ] Implement game end checks
+- [x] Implement game end checks
   - File: `src/logic/conditions.ts`
   - Tests: `src/__tests__/logic/conditions.test.ts`
   - Functions:
@@ -472,7 +487,7 @@
   - Depends: 1.1.2
 
 ### 4.1.6 Turn Processor
-- [ ] Implement complete turn execution
+- [x] Implement complete turn execution
   - File: `src/logic/turn.ts`
   - Tests: `src/__tests__/logic/turn.test.ts`
   - Function: `processTurn(state): TurnResult`
@@ -485,7 +500,7 @@
 ## 4.2 Game Store Turn Integration
 
 ### 4.2.1 Execute Turn Action
-- [ ] Add executeTurn action to store
+- [x] Add executeTurn action to store
   - File: `src/stores/gameStore.ts` (extend)
   - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
   - Action: `executeTurn()` - calls processTurn, updates state
@@ -493,7 +508,7 @@
   - Depends: 4.1.6, 3.1.3
 
 ### 4.2.2 Game End Navigation
-- [ ] Add automatic navigation on game end
+- [x] Add automatic navigation on game end
   - File: `src/stores/gameStore.ts` (extend)
   - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
   - After executeTurn: if victory → go to victory screen, if gameOver → go to gameOver screen
@@ -505,7 +520,7 @@
 ## 4.3 Turn UI Components
 
 ### 4.3.1 GoButton Component
-- [ ] Create GO button that triggers turn
+- [x] Create GO button that triggers turn
   - File: `src/components/game/GoButton.tsx`
   - Tests: `src/__tests__/components/GoButton.test.tsx`
   - Props: onGo, disabled
@@ -513,7 +528,7 @@
   - Depends: 1.3.1
 
 ### 4.3.2 TurnResultDisplay Component
-- [ ] Create turn result feedback
+- [x] Create turn result feedback
   - File: `src/components/game/TurnResultDisplay.tsx`
   - Tests: `src/__tests__/components/TurnResultDisplay.test.tsx`
   - Shows: "Rolled [X]! Moved [Y] distance."
@@ -526,7 +541,7 @@
 ## 4.4 Wire Turn Execution
 
 ### 4.4.1 Dashboard Turn Integration
-- [ ] Wire Dashboard to execute turns
+- [x] Wire Dashboard to execute turns
   - File: `src/components/screens/Dashboard.tsx` (update)
   - Tests: `src/__tests__/components/Dashboard.test.tsx` (update)
   - GO button calls executeTurn from store
@@ -534,14 +549,14 @@
   - Depends: 4.3.1, 4.3.2, 4.2.1
 
 ### 4.4.2 VictoryScreen with Turn Count
-- [ ] Update VictoryScreen to show actual turn count
+- [x] Update VictoryScreen to show actual turn count
   - File: `src/components/screens/VictoryScreen.tsx` (update)
   - Tests: `src/__tests__/components/VictoryScreen.test.tsx` (update)
   - Shows: "You completed the journey in X turns!"
   - Depends: 4.2.2
 
 ### 4.4.3 GameOverScreen with Reason
-- [ ] Update GameOverScreen to show actual reason
+- [x] Update GameOverScreen to show actual reason
   - File: `src/components/screens/GameOverScreen.tsx` (update)
   - Tests: `src/__tests__/components/GameOverScreen.test.tsx` (update)
   - Shows: "You ran out of [food/fuel/water/money]!"
@@ -552,7 +567,7 @@
 ## 4.5 Phase 4 Verification
 
 ### 4.5.1 Turn Logic Tests
-- [ ] Test complete turn processing
+- [x] Test complete turn processing
   - File: `src/__tests__/integration/phase4-turnloop.test.tsx`
   - Test: Turn updates resources correctly
   - Test: Multiple turns advance through countries
@@ -561,7 +576,7 @@
   - Depends: all 4.4.x tasks
 
 ### 4.5.2 Manual Playthrough
-- [ ] Play complete game to victory
+- [x] Play complete game to victory
   - Run: `npm run dev`
   - Test: Click GO multiple times
   - Test: Watch resources change, train advance
@@ -582,7 +597,7 @@
 ## 5.1 Crew Role Logic
 
 ### 5.1.1 Role Cycling Logic
-- [ ] Implement role cycling
+- [x] Implement role cycling
   - File: `src/logic/crew.ts`
   - Tests: `src/__tests__/logic/crew.test.ts`
   - Function: `cycleRole(role): CrewRole`
@@ -590,7 +605,7 @@
   - Depends: 1.1.2
 
 ### 5.1.2 Engineer Bonus Logic
-- [ ] Implement engineer fuel reduction
+- [x] Implement engineer fuel reduction
   - File: `src/logic/crew.ts` (extend)
   - Tests: `src/__tests__/logic/crew.test.ts` (extend)
   - Function: `calculateEngineerBonus(engineerCount): number`
@@ -598,7 +613,7 @@
   - Depends: 5.1.1
 
 ### 5.1.3 Update Resource Logic
-- [ ] Integrate crew bonuses into resource calculations
+- [x] Integrate crew bonuses into resource calculations
   - File: `src/logic/resources.ts` (update)
   - Tests: `src/__tests__/logic/resources.test.ts` (update)
   - Fuel consumption uses engineer bonus
@@ -610,7 +625,7 @@
 ## 5.2 Crew Store Actions
 
 ### 5.2.1 Cycle Crew Role Action
-- [ ] Add role cycling to store
+- [x] Add role cycling to store
   - File: `src/stores/gameStore.ts` (extend)
   - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
   - Action: `cycleCrewRole(crewMemberId)`
@@ -621,7 +636,7 @@
 ## 5.3 Crew UI Updates
 
 ### 5.3.1 Clickable CrewMember
-- [ ] Make CrewMember clickable to cycle role
+- [x] Make CrewMember clickable to cycle role
   - File: `src/components/game/CrewMember.tsx` (update)
   - Tests: `src/__tests__/components/CrewMember.test.tsx` (update)
   - On click: calls cycleCrewRole from store
@@ -629,7 +644,7 @@
   - Depends: 5.2.1, 3.4.1
 
 ### 5.3.2 Role Effect Tooltips
-- [ ] Add tooltips explaining role effects
+- [x] Add tooltips explaining role effects
   - File: `src/components/game/CrewMember.tsx` (update)
   - Tests: `src/__tests__/components/CrewMember.test.tsx` (update)
   - On hover: shows "Engineers reduce fuel consumption"
@@ -640,7 +655,7 @@
 ## 5.4 Phase 5 Verification
 
 ### 5.4.1 Crew Integration Test
-- [ ] Test crew role changes affect gameplay
+- [x] Test crew role changes affect gameplay
   - File: `src/__tests__/integration/phase5-crew.test.tsx`
   - Test: Changing to more cooks increases food production
   - Test: Changing to more engineers decreases fuel consumption
@@ -648,7 +663,7 @@
   - Depends: all 5.3.x tasks
 
 ### 5.4.2 Manual Strategy Test
-- [ ] Test strategic crew management
+- [x] Test strategic crew management
   - Run: `npm run dev`
   - Test: Start game, assign all to cooks, verify high food production
   - Test: Assign all to engineers, verify low fuel consumption
@@ -990,13 +1005,13 @@
 
 | Phase | Tasks | Testable Outcome |
 |-------|-------|------------------|
-| **1. Clickable Prototype** | 14 | Navigate through all screens |
+| **1. Clickable Prototype** | 13 | Navigate through all screens |
 | **2. Real Selection** | 12 | See captains/trains with stats, selection persists |
 | **3. Dashboard Display** | 12 | See resources, journey track, crew |
 | **4. Working Game Loop** | 16 | Click GO, play turns, reach victory/game over |
 | **5. Crew Management** | 8 | Change crew roles, affects gameplay |
 | **6. Station Arrivals** | 7 | Station rewards on arrival - **MVP COMPLETE** |
-| **MVP Total** | **69** | **Full playable game** |
+| **MVP Total** | **68** | **Full playable game** |
 | 7. Event System | ~15 | Random events with card resolution |
 | 8. Cart System | ~8 | Buy carts at stations |
 | 9. Mini-Games | ~15 | Country-specific mini-games |

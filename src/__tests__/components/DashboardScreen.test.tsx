@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { act } from 'react'
 import { DashboardScreen } from '../../components/screens/DashboardScreen'
@@ -7,6 +7,31 @@ import { STARTING_RESOURCES, MAX_RESOURCES } from '../../data/constants'
 import { startingCrew } from '../../data/crew'
 import type { Captain, Train } from '../../types'
 import type { TurnResult } from '../../logic/turn'
+import type { GameEvent } from '../../data/events'
+import type { BonusCard } from '../../data/cards'
+
+// Mock events module to prevent random event triggering during tests
+vi.mock('../../logic/events', () => ({
+  shouldTriggerEvent: vi.fn(() => false),
+  selectRandomEvent: vi.fn(() => ({
+    id: 'test-event',
+    name: 'Test Event',
+    description: 'A test event',
+    statTested: 'engineering',
+    difficulty: 10,
+    penalty: { type: 'resource', resource: 'fuel', amount: 20 },
+  })),
+  resolveEvent: vi.fn(() => ({
+    success: true,
+    total: 15,
+  })),
+}))
+
+// Mock dice module to control roll results
+vi.mock('../../logic/dice', () => ({
+  rollDice: vi.fn(() => 6),
+  rollMovement: vi.fn(() => 6),
+}))
 
 const mockCaptain: Captain = {
   id: 'renji',
@@ -324,6 +349,7 @@ describe('DashboardScreen', () => {
       gameStatus: 'playing',
       newTurnCount: 2,
       stationReward: { waterRefill: 50, moneyEarned: 25 },
+      eventTriggered: false,
     }
 
     const mockTurnResultWithoutStation: TurnResult = {
@@ -336,6 +362,7 @@ describe('DashboardScreen', () => {
       arrivedAtCountry: false,
       gameStatus: 'playing',
       newTurnCount: 2,
+      eventTriggered: false,
     }
 
     it('shows StationModal when lastTurnResult has stationReward', () => {
@@ -444,6 +471,304 @@ describe('DashboardScreen', () => {
       render(<DashboardScreen />)
 
       expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('event modal integration', () => {
+    const mockEvent: GameEvent = {
+      id: 'test-event',
+      name: 'Test Event',
+      description: 'A test event description',
+      statTested: 'engineering',
+      difficulty: 10,
+      penalty: { type: 'resource', resource: 'fuel', amount: 20 },
+    }
+
+    const mockCards: BonusCard[] = [
+      {
+        id: 'card-1',
+        name: 'Test Card 1',
+        stat: 'engineering',
+        bonus: 3,
+        description: 'A test card',
+      },
+      {
+        id: 'card-2',
+        name: 'Test Card 2',
+        stat: 'food',
+        bonus: 2,
+        description: 'Another test card',
+      },
+      {
+        id: 'card-3',
+        name: 'Test Card 3',
+        stat: 'security',
+        bonus: 4,
+        description: 'Third test card',
+      },
+    ]
+
+    const mockTurnResultWithEvent: TurnResult = {
+      diceRoll: 4,
+      movement: 6,
+      resourceChanges: { food: -2, fuel: -3, water: -1, money: -5 },
+      newResources: { food: 48, fuel: 47, water: 49, money: 95 },
+      newCountryIndex: 0,
+      newProgress: 6,
+      arrivedAtCountry: false,
+      gameStatus: 'playing',
+      newTurnCount: 2,
+      eventTriggered: true,
+      event: mockEvent,
+    }
+
+    const mockTurnResultWithoutEvent: TurnResult = {
+      diceRoll: 4,
+      movement: 6,
+      resourceChanges: { food: -2, fuel: -3, water: -1, money: -5 },
+      newResources: { food: 48, fuel: 47, water: 49, money: 95 },
+      newCountryIndex: 0,
+      newProgress: 6,
+      arrivedAtCountry: false,
+      gameStatus: 'playing',
+      newTurnCount: 2,
+      eventTriggered: false,
+    }
+
+    beforeEach(() => {
+      act(() => {
+        useGameStore.setState({
+          currentScreen: 'dashboard',
+          selectedCaptain: mockCaptain,
+          selectedTrain: mockTrain,
+          resources: { ...STARTING_RESOURCES },
+          crew: [...startingCrew],
+          currentCountryIndex: 0,
+          progressInCountry: 0,
+          turnCount: 1,
+          lastTurnResult: null,
+          gameOverReason: null,
+          cardHand: mockCards,
+          currentEvent: null,
+          selectedCards: [],
+        })
+      })
+    })
+
+    it('shows EventModal when turn result has eventTriggered', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.getByTestId('event-modal')).toBeInTheDocument()
+      expect(screen.getByText('Test Event')).toBeInTheDocument()
+    })
+
+    it('does NOT show EventModal when no event triggered', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithoutEvent,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.queryByTestId('event-modal')).not.toBeInTheDocument()
+      expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
+    })
+
+    it('shows card hand in EventModal', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+          cardHand: mockCards,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.getByTestId('card-hand')).toBeInTheDocument()
+      expect(screen.getByText('Test Card 1')).toBeInTheDocument()
+      expect(screen.getByText('Test Card 2')).toBeInTheDocument()
+      expect(screen.getByText('Test Card 3')).toBeInTheDocument()
+    })
+
+    it('allows card selection through EventModal', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+          cardHand: mockCards,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Click on a card to select it
+      const card1 = screen.getByTestId('card-display-card-1')
+      fireEvent.click(card1)
+
+      // Card should now be in selected state in the store
+      expect(useGameStore.getState().selectedCards).toContain('card-1')
+    })
+
+    it('shows Roll button in EventModal before resolution', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.getByRole('button', { name: /roll/i })).toBeInTheDocument()
+    })
+
+    it('resolves event and shows result when Roll is clicked', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+          cardHand: mockCards,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Click Roll button
+      const rollButton = screen.getByRole('button', { name: /roll/i })
+      fireEvent.click(rollButton)
+
+      // Should show the result
+      expect(screen.getByTestId('event-result')).toBeInTheDocument()
+    })
+
+    it('shows Continue button after event is resolved', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+          cardHand: mockCards,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Click Roll button
+      const rollButton = screen.getByRole('button', { name: /roll/i })
+      fireEvent.click(rollButton)
+
+      // Should show Continue button
+      expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument()
+    })
+
+    it('dismisses EventModal and clears currentEvent when Continue is clicked', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+          cardHand: mockCards,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Click Roll button
+      const rollButton = screen.getByRole('button', { name: /roll/i })
+      fireEvent.click(rollButton)
+
+      // Click Continue button
+      const continueButton = screen.getByRole('button', { name: /continue/i })
+      fireEvent.click(continueButton)
+
+      // EventModal should be gone, currentEvent should be null
+      expect(screen.queryByTestId('event-modal')).not.toBeInTheDocument()
+      expect(useGameStore.getState().currentEvent).toBeNull()
+    })
+
+    it('shows turn result after event is dismissed (no station)', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+          cardHand: mockCards,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Roll and continue
+      fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+      // Turn result should now be visible
+      expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
+    })
+
+    it('shows station modal after event is dismissed (with station arrival)', () => {
+      const turnResultWithEventAndStation: TurnResult = {
+        ...mockTurnResultWithEvent,
+        newCountryIndex: 1,
+        newProgress: 0,
+        arrivedAtCountry: true,
+        stationReward: { waterRefill: 50, moneyEarned: 25 },
+      }
+
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: turnResultWithEventAndStation,
+          currentEvent: mockEvent,
+          currentCountryIndex: 1,
+          cardHand: mockCards,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Event modal should be shown first
+      expect(screen.getByTestId('event-modal')).toBeInTheDocument()
+      expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
+
+      // Roll and continue
+      fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+      // Now station modal should be visible
+      expect(screen.queryByTestId('event-modal')).not.toBeInTheDocument()
+      expect(screen.getByTestId('station-modal')).toBeInTheDocument()
+    })
+
+    it('sets currentEvent in store when turn result has event', () => {
+      // When a turn result comes in with an event, the component should
+      // set currentEvent in the store to display the EventModal
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+        })
+      })
+
+      render(<DashboardScreen />)
+
+      // EventModal should be visible because currentEvent is set
+      expect(useGameStore.getState().currentEvent).toEqual(mockEvent)
+      expect(screen.getByTestId('event-modal')).toBeInTheDocument()
+    })
+
+    it('clears selected cards after event resolution', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithEvent,
+          currentEvent: mockEvent,
+          cardHand: mockCards,
+          selectedCards: ['card-1'],
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Roll and continue
+      fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+      // Selected cards should be cleared
+      expect(useGameStore.getState().selectedCards).toHaveLength(0)
     })
   })
 })

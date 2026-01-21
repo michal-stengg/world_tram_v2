@@ -4,9 +4,13 @@ import { JourneyTrack } from '../game/JourneyTrack'
 import { CrewPanel } from '../game/CrewPanel'
 import { TurnResultDisplay } from '../game/TurnResultDisplay'
 import { StationModal } from '../game/StationModal'
+import { EventModal } from '../game/EventModal'
 import { GoButton } from '../game/GoButton'
 import { useGameStore } from '../../stores/gameStore'
 import { countries } from '../../data/countries'
+import { resolveEvent } from '../../logic/events'
+import { rollDice } from '../../logic/dice'
+import type { EventResult } from '../../logic/events'
 
 const containerStyle: React.CSSProperties = {
   display: 'flex',
@@ -86,17 +90,40 @@ export function DashboardScreen() {
   const lastTurnResult = useGameStore((state) => state.lastTurnResult)
   const currentCountryIndex = useGameStore((state) => state.currentCountryIndex)
 
+  // Event-related store state
+  const currentEvent = useGameStore((state) => state.currentEvent)
+  const cardHand = useGameStore((state) => state.cardHand)
+  const selectedCards = useGameStore((state) => state.selectedCards)
+  const selectCard = useGameStore((state) => state.selectCard)
+  const setCurrentEvent = useGameStore((state) => state.setCurrentEvent)
+  const resolveCurrentEvent = useGameStore((state) => state.resolveCurrentEvent)
+
   // Track whether we're showing the station modal (before showing turn result)
   const [showStationModal, setShowStationModal] = useState(false)
 
-  // When a new turn result comes in with a stationReward, show the station modal first
+  // Track event resolution result
+  const [eventResult, setEventResult] = useState<EventResult | undefined>(undefined)
+
+  // When a new turn result comes in with an event, set it in the store
   useEffect(() => {
-    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing') {
+    if (lastTurnResult?.eventTriggered && lastTurnResult.event) {
+      setCurrentEvent(lastTurnResult.event)
+      // Reset event result for new event - intentional state update in effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEventResult(undefined)
+    }
+  }, [lastTurnResult, setCurrentEvent])
+
+  // When a new turn result comes in with a stationReward and no event pending, show the station modal
+  useEffect(() => {
+    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing' && !currentEvent) {
+      // Show station modal after event is resolved - intentional state update in effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowStationModal(true)
-    } else {
+    } else if (!currentEvent) {
       setShowStationModal(false)
     }
-  }, [lastTurnResult])
+  }, [lastTurnResult, currentEvent])
 
   const handleDismissStationModal = () => {
     setShowStationModal(false)
@@ -104,6 +131,41 @@ export function DashboardScreen() {
 
   const handleDismissTurnResult = () => {
     clearTurnResult()
+  }
+
+  const handleSelectCard = (cardId: string) => {
+    selectCard(cardId)
+  }
+
+  const handleEventRoll = () => {
+    if (!currentEvent || !selectedCaptain) return
+
+    // Get the selected cards from the hand
+    const playedCards = cardHand.filter(card => selectedCards.includes(card.id))
+
+    // Roll the dice
+    const diceRoll = rollDice(1, 6)
+
+    // Resolve the event
+    const result = resolveEvent(
+      currentEvent,
+      playedCards,
+      selectedCaptain.stats,
+      diceRoll
+    )
+
+    setEventResult(result)
+  }
+
+  const handleEventContinue = () => {
+    // Clear the event and resolve it (removes played cards, replenishes hand)
+    resolveCurrentEvent()
+    setEventResult(undefined)
+
+    // After event is resolved, show station modal if applicable
+    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing') {
+      setShowStationModal(true)
+    }
   }
 
   return (
@@ -151,8 +213,21 @@ export function DashboardScreen() {
         </div>
       </div>
 
-      {/* Station Modal - shows when arriving at a new country */}
-      {showStationModal && lastTurnResult?.stationReward && (
+      {/* Event Modal - shows when an event is triggered (before station/turn result) */}
+      {currentEvent && (
+        <EventModal
+          event={currentEvent}
+          cardHand={cardHand}
+          selectedCardIds={selectedCards}
+          onSelectCard={handleSelectCard}
+          onRoll={handleEventRoll}
+          result={eventResult}
+          onContinue={handleEventContinue}
+        />
+      )}
+
+      {/* Station Modal - shows when arriving at a new country (after event is resolved) */}
+      {!currentEvent && showStationModal && lastTurnResult?.stationReward && (
         <StationModal
           country={countries[currentCountryIndex]}
           reward={lastTurnResult.stationReward}
@@ -161,7 +236,7 @@ export function DashboardScreen() {
       )}
 
       {/* Turn Result Modal - shows after station modal is dismissed (or immediately if no station) */}
-      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && (
+      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !currentEvent && (
         <TurnResultDisplay
           result={lastTurnResult}
           onDismiss={handleDismissTurnResult}

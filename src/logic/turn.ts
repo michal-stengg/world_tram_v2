@@ -13,7 +13,9 @@ import { checkVictory, checkGameOver } from './conditions'
 import type { GameOverReason } from './conditions'
 import { processStationArrival } from './station'
 import type { StationReward } from './station'
+import { shouldTriggerEvent, selectRandomEvent } from './events'
 import { countries } from '../data/countries'
+import type { GameEvent } from '../data/events'
 import type { Captain, Train, CrewMember, Resources } from '../types'
 
 export interface GameState {
@@ -40,6 +42,8 @@ export interface TurnResult {
   gameOverReason?: GameOverReason
   newTurnCount: number
   stationReward?: StationReward
+  eventTriggered: boolean
+  event?: GameEvent
 }
 
 /**
@@ -101,7 +105,11 @@ export function processTurn(state: GameState): TurnResult {
   // 9. Increment turn count
   const newTurnCount = state.turnCount + 1
 
-  // 10. Check game end conditions
+  // 10. Check for random events after movement
+  const eventTriggered = shouldTriggerEvent()
+  const event = eventTriggered ? selectRandomEvent() : undefined
+
+  // 11. Check game end conditions
   let gameStatus: GameStatus = 'playing'
   let gameOverReason: GameOverReason | undefined
 
@@ -129,5 +137,7 @@ export function processTurn(state: GameState): TurnResult {
     gameOverReason,
     newTurnCount,
     stationReward,
+    eventTriggered,
+    event,
   }
 }

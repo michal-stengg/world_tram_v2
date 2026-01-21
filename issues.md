@@ -810,7 +810,7 @@
   - Depends: 7.1.2
 
 ### 7.2.3 Event Resolution Logic
-- [o] Implement event resolution
+- [x] Implement event resolution
   - File: `src/logic/events.ts` (extend)
   - Tests: `src/__tests__/logic/events.test.ts` (extend)
   - Function: `resolveEvent(event, playedCards, captainStats, diceRoll): EventResult`
@@ -819,7 +819,7 @@
   - Depends: 7.2.1, 7.2.2
 
 ### 7.2.4 Integrate Events into Turn
-- [ ] Add event check to turn processing
+- [x] Add event check to turn processing
   - File: `src/logic/turn.ts` (update)
   - Tests: `src/__tests__/logic/turn.test.ts` (update)
   - After movement: check for event trigger
@@ -831,7 +831,7 @@
 ## 7.3 Event Store
 
 ### 7.3.1 Card Hand State
-- [o] Add card hand to game store
+- [x] Add card hand to game store
   - File: `src/stores/gameStore.ts` (extend)
   - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
   - State: cardHand, currentEvent, selectedCards
@@ -851,7 +851,7 @@
   - Depends: 7.1.2
 
 ### 7.4.2 CardHand Component
-- [o] Create card hand display
+- [x] Create card hand display
   - File: `src/components/game/CardHand.tsx`
   - Tests: `src/__tests__/components/CardHand.test.tsx`
   - Shows: 3 CardDisplay components
@@ -859,7 +859,7 @@
   - Depends: 7.4.1
 
 ### 7.4.3 EventModal Component
-- [ ] Create event resolution modal
+- [x] Create event resolution modal
   - File: `src/components/game/EventModal.tsx`
   - Tests: `src/__tests__/components/EventModal.test.tsx`
   - Shows: Event description, difficulty, potential penalty
@@ -868,7 +868,7 @@
   - Depends: 7.4.2, 7.2.3
 
 ### 7.4.4 Dashboard Event Integration
-- [ ] Integrate events into dashboard
+- [x] Integrate events into dashboard
   - File: `src/components/screens/Dashboard.tsx` (update)
   - Tests: `src/__tests__/components/Dashboard.test.tsx` (update)
   - After turn: if event triggered, show EventModal
@@ -880,7 +880,7 @@
 ## 7.5 Phase 7 Verification
 
 ### 7.5.1 Event Integration Test
-- [ ] Test complete event flow
+- [x] Test complete event flow
   - File: `src/__tests__/integration/phase7-events.test.tsx`
   - Test: Events trigger randomly
   - Test: Card selection affects resolution
@@ -889,7 +889,7 @@
   - Depends: 7.4.4
 
 ### 7.5.2 Manual Event Test
-- [ ] Test events in gameplay
+- [x] Test events in gameplay
   - Run: `npm run dev`
   - Test: Play until event triggers
   - Test: Select cards, roll, see outcome

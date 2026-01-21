@@ -23,6 +23,7 @@ const mockTurnResult: TurnResult = {
   arrivedAtCountry: true,
   gameStatus: 'playing',
   newTurnCount: 2,
+  eventTriggered: false,
 }
 
 describe('TurnResultDisplay', () => {

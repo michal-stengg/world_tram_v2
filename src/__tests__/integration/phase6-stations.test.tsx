@@ -11,6 +11,24 @@ import { startingCrew } from '../../data/crew'
 // Mock the dice roll to get consistent results for testing
 vi.mock('../../logic/dice', () => ({
   rollMovement: () => 10, // Fixed dice roll of 10 to guarantee arrival at new country
+  rollDice: () => 6, // Fixed dice roll for event resolution
+}))
+
+// Mock events to prevent random event triggering during station tests
+vi.mock('../../logic/events', () => ({
+  shouldTriggerEvent: () => false, // Never trigger events in station tests
+  selectRandomEvent: () => ({
+    id: 'test-event',
+    name: 'Test Event',
+    description: 'A test event',
+    statTested: 'engineering',
+    difficulty: 10,
+    penalty: { type: 'resource', resource: 'fuel', amount: 20 },
+  }),
+  resolveEvent: () => ({
+    success: true,
+    total: 15,
+  }),
 }))
 
 describe('Phase 6: Station Arrivals Integration', () => {

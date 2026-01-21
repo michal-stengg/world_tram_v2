@@ -6,6 +6,9 @@ import { processTurn } from '../logic/turn'
 import type { TurnResult } from '../logic/turn'
 import type { GameOverReason } from '../logic/conditions'
 import { cycleRole } from '../logic/crew'
+import type { BonusCard } from '../data/cards'
+import type { GameEvent } from '../data/events'
+import { drawInitialHand, playCards, replenishHand } from '../logic/cards'
 
 interface GameState {
   currentScreen: GameScreen
@@ -20,6 +23,10 @@ interface GameState {
   // Turn result state
   lastTurnResult: TurnResult | null
   gameOverReason: GameOverReason | null
+  // Card hand state
+  cardHand: BonusCard[]
+  currentEvent: GameEvent | null
+  selectedCards: string[]
 }
 
 interface GameActions {
@@ -32,6 +39,11 @@ interface GameActions {
   executeTurn: () => void
   clearTurnResult: () => void
   cycleCrewRole: (crewMemberId: string) => void
+  // Card actions
+  initializeCards: () => void
+  selectCard: (cardId: string) => void
+  setCurrentEvent: (event: GameEvent | null) => void
+  resolveCurrentEvent: () => void
 }
 
 type GameStore = GameState & GameActions
@@ -61,6 +73,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // Turn result state
   lastTurnResult: null,
   gameOverReason: null,
+  // Card hand state
+  cardHand: [],
+  currentEvent: null,
+  selectedCards: [],
 
   // Actions
   setScreen: (screen) => set({ currentScreen: screen }),
@@ -97,6 +113,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     turnCount: 1,
     lastTurnResult: null,
     gameOverReason: null,
+    cardHand: drawInitialHand(),
+    currentEvent: null,
+    selectedCards: [],
   }),
 
   executeTurn: () => {
@@ -151,4 +170,42 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     return { crew: updatedCrew }
   }),
+
+  // Card actions
+  initializeCards: () => set({
+    cardHand: drawInitialHand(),
+    currentEvent: null,
+    selectedCards: [],
+  }),
+
+  selectCard: (cardId: string) => set((state) => {
+    const isSelected = state.selectedCards.includes(cardId)
+    if (isSelected) {
+      return { selectedCards: state.selectedCards.filter(id => id !== cardId) }
+    } else {
+      return { selectedCards: [...state.selectedCards, cardId] }
+    }
+  }),
+
+  setCurrentEvent: (event: GameEvent | null) => set({
+    currentEvent: event,
+  }),
+
+  resolveCurrentEvent: () => {
+    const state = get()
+    if (!state.currentEvent) {
+      return
+    }
+
+    // Remove played cards from hand
+    const handAfterPlay = playCards(state.cardHand, state.selectedCards)
+    // Replenish hand back to 3 cards
+    const newHand = replenishHand(handAfterPlay)
+
+    set({
+      cardHand: newHand,
+      currentEvent: null,
+      selectedCards: [],
+    })
+  },
 }))

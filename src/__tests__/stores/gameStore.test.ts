@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from '../../stores/gameStore'
 import type { GameScreen, Captain, Train, CrewMember } from '../../types'
 import { STARTING_RESOURCES } from '../../data/constants'
 import { startingCrew } from '../../data/crew'
 import { cycleRole } from '../../logic/crew'
-import { cards, BonusCard } from '../../data/cards'
-import { events, GameEvent } from '../../data/events'
+import { cards } from '../../data/cards'
+import { events } from '../../data/events'
 
 // Mock data for tests
 const mockCaptain: Captain = {
@@ -40,6 +40,9 @@ describe('gameStore', () => {
       turnCount: 1,
       lastTurnResult: null,
       gameOverReason: null,
+      cardHand: [],
+      currentEvent: null,
+      selectedCards: [],
     })
   })
 

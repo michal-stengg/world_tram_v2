@@ -3,10 +3,28 @@ import { processTurn } from '../../logic/turn'
 import type { GameState } from '../../logic/turn'
 import type { Captain, Train, CrewMember } from '../../types'
 import { STARTING_RESOURCES } from '../../data/constants'
+import * as eventsModule from '../../logic/events'
 
 // Mock dice for predictable tests
 vi.mock('../../logic/dice', () => ({
   rollMovement: vi.fn(() => 5),
+}))
+
+// Mock events module for controllable event tests
+vi.mock('../../logic/events', () => ({
+  shouldTriggerEvent: vi.fn(() => false),
+  selectRandomEvent: vi.fn(() => ({
+    id: 'test-event',
+    name: 'Test Event',
+    description: 'A test event',
+    statTested: 'engineering',
+    difficulty: 10,
+    penalty: {
+      type: 'resource',
+      resource: 'fuel',
+      amount: 20,
+    },
+  })),
 }))
 
 describe('turn processor', () => {
@@ -251,6 +269,88 @@ describe('turn processor', () => {
         const expectedMoneyAfterWages = 200 + result.resourceChanges.money
         const expectedFinalMoney = expectedMoneyAfterWages + result.stationReward!.moneyEarned
         expect(result.newResources.money).toBe(expectedFinalMoney)
+      })
+    })
+
+    describe('event triggering', () => {
+      beforeEach(() => {
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(false)
+      })
+
+      it('should include eventTriggered in TurnResult', () => {
+        const state = createGameState()
+        const result = processTurn(state)
+
+        expect(result).toHaveProperty('eventTriggered')
+        expect(typeof result.eventTriggered).toBe('boolean')
+      })
+
+      it('should set eventTriggered to false when no event triggers', () => {
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(false)
+
+        const state = createGameState()
+        const result = processTurn(state)
+
+        expect(result.eventTriggered).toBe(false)
+        expect(result.event).toBeUndefined()
+      })
+
+      it('should set eventTriggered to true when event triggers', () => {
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(true)
+
+        const state = createGameState()
+        const result = processTurn(state)
+
+        expect(result.eventTriggered).toBe(true)
+      })
+
+      it('should include event in TurnResult when triggered', () => {
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(true)
+
+        const state = createGameState()
+        const result = processTurn(state)
+
+        expect(result.event).toBeDefined()
+        expect(result.event!.id).toBe('test-event')
+        expect(result.event!.name).toBe('Test Event')
+        expect(result.event!.statTested).toBe('engineering')
+        expect(result.event!.difficulty).toBe(10)
+      })
+
+      it('should not include event in TurnResult when not triggered', () => {
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(false)
+
+        const state = createGameState()
+        const result = processTurn(state)
+
+        expect(result.event).toBeUndefined()
+      })
+
+      it('should call selectRandomEvent only when shouldTriggerEvent returns true', () => {
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(false)
+        vi.mocked(eventsModule.selectRandomEvent).mockClear()
+
+        const state = createGameState()
+        processTurn(state)
+
+        expect(eventsModule.selectRandomEvent).not.toHaveBeenCalled()
+
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(true)
+        processTurn(state)
+
+        expect(eventsModule.selectRandomEvent).toHaveBeenCalledTimes(1)
+      })
+
+      it('should check for events after movement', () => {
+        vi.mocked(eventsModule.shouldTriggerEvent).mockReturnValue(true)
+
+        const state = createGameState()
+        const result = processTurn(state)
+
+        // Even with event triggered, movement should still happen
+        expect(result.movement).toBe(8) // dice (5) + train speed (3)
+        expect(result.newProgress).toBe(8)
+        expect(result.eventTriggered).toBe(true)
       })
     })
   })

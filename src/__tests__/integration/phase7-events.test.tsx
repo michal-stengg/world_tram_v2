@@ -90,6 +90,9 @@ describe('Phase 7: Events Integration', () => {
   const securityEvent = events.find(e => e.statTested === 'security')!
 
   beforeEach(() => {
+    // Use fake timers for dice rolling animation
+    vi.useFakeTimers()
+
     // Reset mock config to defaults before each test
     mockConfig.shouldTriggerEvent = false // Default: no events
     mockConfig.selectedEvent = engineeringEvent
@@ -122,7 +125,15 @@ describe('Phase 7: Events Integration', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
   })
+
+  // Helper to advance timers past dice rolling animation
+  const advanceDiceRollingAnimation = () => {
+    act(() => {
+      vi.advanceTimersByTime(1600) // 1500ms animation + buffer
+    })
+  }
 
   describe('event modal appears when event triggers', () => {
     it('displays event modal when shouldTriggerEvent returns true', () => {
@@ -231,6 +242,9 @@ describe('Phase 7: Events Integration', () => {
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
 
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
+
       // Check the result - should succeed with card bonus
       // Total: 2 (dice) + 5 (captain engineering) + 3 (card bonus) = 10
       expect(screen.getByTestId('event-result')).toHaveTextContent('Success!')
@@ -256,6 +270,9 @@ describe('Phase 7: Events Integration', () => {
       // Roll
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
+
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
 
       // Check the result - should fail because security card doesn't help engineering event
       expect(screen.getByTestId('event-result')).toHaveTextContent('Failed!')
@@ -284,6 +301,9 @@ describe('Phase 7: Events Integration', () => {
       // Roll without selecting cards
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
+
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
 
       // Should show success
       expect(screen.getByTestId('event-result')).toHaveTextContent('Success!')
@@ -316,6 +336,9 @@ describe('Phase 7: Events Integration', () => {
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
 
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
+
       expect(screen.getByTestId('event-result')).toHaveTextContent('Success!')
       // Total: 6 (dice) + 5 (captain engineering) = 11
       expect(screen.getByTestId('event-total')).toHaveTextContent('11')
@@ -339,6 +362,9 @@ describe('Phase 7: Events Integration', () => {
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
 
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
+
       // Should show failure
       expect(screen.getByTestId('event-result')).toHaveTextContent('Failed!')
 
@@ -360,6 +386,9 @@ describe('Phase 7: Events Integration', () => {
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
 
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
+
       expect(screen.getByTestId('event-result')).toHaveTextContent('Failed!')
       // Total: 1 (dice) + 5 (captain engineering) = 6
       expect(screen.getByTestId('event-total')).toHaveTextContent('6')
@@ -377,6 +406,9 @@ describe('Phase 7: Events Integration', () => {
 
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
+
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
 
       expect(screen.getByTestId('event-penalty-applied')).toHaveTextContent('money')
     })
@@ -403,6 +435,9 @@ describe('Phase 7: Events Integration', () => {
       // Roll
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
+
+      // Advance timers past the dice rolling animation
+      advanceDiceRollingAnimation()
 
       // Continue past event
       const continueButton = screen.getByRole('button', { name: /continue/i })
@@ -431,6 +466,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Roll and continue
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Verify replenishHand was called with the remaining cards (2 cards)
@@ -458,6 +494,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Roll and continue
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Selected cards should be cleared
@@ -495,6 +532,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Resolve event
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Now station modal should appear
@@ -515,6 +553,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Resolve event
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Dismiss station modal
@@ -545,6 +584,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Resolve event
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Dismiss station modal
@@ -622,6 +662,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Don't select any cards, just roll
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
 
       // Should still work
       expect(screen.getByTestId('event-result')).toBeInTheDocument()
@@ -646,6 +687,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Roll without cards - should fail
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
 
       expect(screen.getByTestId('event-result')).toHaveTextContent('Failed!')
     })

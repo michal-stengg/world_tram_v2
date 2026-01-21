@@ -7,6 +7,7 @@ export interface ResourceMeterProps {
   max: number
   color?: string
   showWarning?: boolean
+  previewDelta?: number
 }
 
 export function ResourceMeter({
@@ -16,6 +17,7 @@ export function ResourceMeter({
   max,
   color = '#F7B538',
   showWarning = true,
+  previewDelta,
 }: ResourceMeterProps) {
   const percentage = Math.max(0, Math.min(100, (current / max) * 100))
   const isLow = showWarning && percentage < 20
@@ -67,6 +69,19 @@ export function ResourceMeter({
     fontFamily: 'monospace',
   }
 
+  const getDeltaStyle = (delta: number): React.CSSProperties => ({
+    fontSize: '0.75rem',
+    fontFamily: 'monospace',
+    marginLeft: '4px',
+    color: delta > 0 ? '#2ecc71' : delta < 0 ? '#e74c3c' : 'var(--color-text-secondary, #b8b8d0)',
+  })
+
+  const formatDelta = (delta: number): string => {
+    if (delta > 0) return `(+${delta})`
+    if (delta < 0) return `(${delta})`
+    return '(0)'
+  }
+
   return (
     <div style={containerStyle} data-testid={`resource-meter-${label.toLowerCase()}`}>
       <div style={iconLabelStyle}>
@@ -96,6 +111,11 @@ export function ResourceMeter({
       <span style={valueStyle} data-testid="value-text">
         {current}/{max}
       </span>
+      {previewDelta !== undefined && (
+        <span style={getDeltaStyle(previewDelta)} data-testid="preview-delta">
+          {formatDelta(previewDelta)}
+        </span>
+      )}
     </div>
   )
 }

@@ -101,6 +101,33 @@ describe('ResourceMeter', () => {
     })
   })
 
+  describe('previewDelta prop', () => {
+    it('does not render delta when previewDelta is undefined', () => {
+      render(<ResourceMeter icon="🍞" label="Food" current={50} max={100} />)
+      expect(screen.queryByTestId('preview-delta')).not.toBeInTheDocument()
+    })
+
+    it('renders positive delta with plus sign and green color', () => {
+      render(<ResourceMeter icon="🍞" label="Food" current={50} max={100} previewDelta={5} />)
+      const delta = screen.getByTestId('preview-delta')
+      expect(delta).toHaveTextContent('(+5)')
+      expect(delta).toHaveStyle({ color: '#2ecc71' })
+    })
+
+    it('renders negative delta with minus sign and red color', () => {
+      render(<ResourceMeter icon="🍞" label="Food" current={50} max={100} previewDelta={-3} />)
+      const delta = screen.getByTestId('preview-delta')
+      expect(delta).toHaveTextContent('(-3)')
+      expect(delta).toHaveStyle({ color: '#e74c3c' })
+    })
+
+    it('renders zero delta with neutral color', () => {
+      render(<ResourceMeter icon="🍞" label="Food" current={50} max={100} previewDelta={0} />)
+      const delta = screen.getByTestId('preview-delta')
+      expect(delta).toHaveTextContent('(0)')
+    })
+  })
+
   describe('different resources', () => {
     it('renders food meter correctly', () => {
       render(<ResourceMeter icon="🍞" label="Food" current={50} max={100} />)

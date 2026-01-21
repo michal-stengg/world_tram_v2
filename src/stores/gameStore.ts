@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { GameScreen, Captain, Train, Resources, CrewMember } from '../types'
+import type { GameScreen, Captain, Train, Resources, CrewMember, Cart } from '../types'
 import { STARTING_RESOURCES } from '../data/constants'
 import { startingCrew } from '../data/crew'
 import { processTurn } from '../logic/turn'
@@ -9,6 +9,8 @@ import { cycleRole } from '../logic/crew'
 import type { BonusCard } from '../data/cards'
 import type { GameEvent } from '../data/events'
 import { drawInitialHand, playCards, replenishHand } from '../logic/cards'
+import { canPurchaseCart } from '../logic/carts'
+import { getCartById } from '../data/carts'
 
 interface GameState {
   currentScreen: GameScreen
@@ -27,6 +29,8 @@ interface GameState {
   cardHand: BonusCard[]
   currentEvent: GameEvent | null
   selectedCards: string[]
+  // Cart state
+  ownedCarts: Cart[]
 }
 
 interface GameActions {
@@ -44,6 +48,8 @@ interface GameActions {
   selectCard: (cardId: string) => void
   setCurrentEvent: (event: GameEvent | null) => void
   resolveCurrentEvent: () => void
+  // Cart actions
+  purchaseCart: (cartId: string) => void
 }
 
 type GameStore = GameState & GameActions
@@ -77,6 +83,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   cardHand: [],
   currentEvent: null,
   selectedCards: [],
+  // Cart state
+  ownedCarts: [],
 
   // Actions
   setScreen: (screen) => set({ currentScreen: screen }),
@@ -116,6 +124,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     cardHand: drawInitialHand(),
     currentEvent: null,
     selectedCards: [],
+    ownedCarts: [],
   }),
 
   executeTurn: () => {
@@ -206,6 +215,30 @@ export const useGameStore = create<GameStore>((set, get) => ({
       cardHand: newHand,
       currentEvent: null,
       selectedCards: [],
+    })
+  },
+
+  purchaseCart: (cartId: string) => {
+    const state = get()
+    const cart = getCartById(cartId)
+
+    // If cart not found, do nothing
+    if (!cart) {
+      return
+    }
+
+    // Check if player can afford it
+    if (!canPurchaseCart(cart, state.resources.money)) {
+      return
+    }
+
+    // Deduct price and add cart to owned carts
+    set({
+      resources: {
+        ...state.resources,
+        money: state.resources.money - cart.price,
+      },
+      ownedCarts: [...state.ownedCarts, cart],
     })
   },
 }))

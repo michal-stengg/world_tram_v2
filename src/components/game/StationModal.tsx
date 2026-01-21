@@ -6,9 +6,10 @@ interface StationModalProps {
   country: Country
   reward: StationReward
   onContinue: () => void
+  onVisitShop?: () => void
 }
 
-export function StationModal({ country, reward, onContinue }: StationModalProps) {
+export function StationModal({ country, reward, onContinue, onVisitShop }: StationModalProps) {
   const overlayStyle: React.CSSProperties = {
     position: 'fixed',
     top: 0,
@@ -113,6 +114,14 @@ export function StationModal({ country, reward, onContinue }: StationModalProps)
             </span>
           </div>
         </div>
+
+        {onVisitShop && (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <PixelButton onClick={onVisitShop} variant="secondary">
+              Visit Shop
+            </PixelButton>
+          </div>
+        )}
 
         <PixelButton onClick={onContinue} variant="gold">
           Continue

@@ -5,6 +5,7 @@ import { CrewPanel } from '../game/CrewPanel'
 import { TurnResultDisplay } from '../game/TurnResultDisplay'
 import { StationModal } from '../game/StationModal'
 import { EventModal } from '../game/EventModal'
+import { CartShop } from '../game/CartShop'
 import { GoButton } from '../game/GoButton'
 import { useGameStore } from '../../stores/gameStore'
 import { countries } from '../../data/countries'
@@ -98,11 +99,23 @@ export function DashboardScreen() {
   const setCurrentEvent = useGameStore((state) => state.setCurrentEvent)
   const resolveCurrentEvent = useGameStore((state) => state.resolveCurrentEvent)
 
+  // Cart shop related state
+  const resources = useGameStore((state) => state.resources)
+  const ownedCarts = useGameStore((state) => state.ownedCarts)
+  const purchaseCart = useGameStore((state) => state.purchaseCart)
+
   // Track whether we're showing the station modal (before showing turn result)
   const [showStationModal, setShowStationModal] = useState(false)
 
+  // Track whether we're showing the cart shop
+  const [showCartShop, setShowCartShop] = useState(false)
+
   // Track event resolution result
   const [eventResult, setEventResult] = useState<EventResult | undefined>(undefined)
+
+  // Track dice rolling animation state
+  const [isRolling, setIsRolling] = useState(false)
+  const [diceValue, setDiceValue] = useState<number | undefined>(undefined)
 
   // When a new turn result comes in with an event, set it in the store
   useEffect(() => {
@@ -129,6 +142,20 @@ export function DashboardScreen() {
     setShowStationModal(false)
   }
 
+  const handleVisitShop = () => {
+    setShowStationModal(false)
+    setShowCartShop(true)
+  }
+
+  const handleCloseCartShop = () => {
+    setShowCartShop(false)
+    // Station modal was already dismissed, so just continue to turn result
+  }
+
+  const handlePurchaseCart = (cartId: string) => {
+    purchaseCart(cartId)
+  }
+
   const handleDismissTurnResult = () => {
     clearTurnResult()
   }
@@ -140,27 +167,36 @@ export function DashboardScreen() {
   const handleEventRoll = () => {
     if (!currentEvent || !selectedCaptain) return
 
+    // Start the rolling animation
+    setIsRolling(true)
+
     // Get the selected cards from the hand
     const playedCards = cardHand.filter(card => selectedCards.includes(card.id))
 
-    // Roll the dice
+    // Roll the dice immediately (but don't show result yet)
     const diceRoll = rollDice(1, 6)
+    setDiceValue(diceRoll)
 
-    // Resolve the event
-    const result = resolveEvent(
-      currentEvent,
-      playedCards,
-      selectedCaptain.stats,
-      diceRoll
-    )
+    // After animation delay, show the result
+    setTimeout(() => {
+      // Resolve the event
+      const result = resolveEvent(
+        currentEvent,
+        playedCards,
+        selectedCaptain.stats,
+        diceRoll
+      )
 
-    setEventResult(result)
+      setEventResult(result)
+      setIsRolling(false)
+    }, 1500)
   }
 
   const handleEventContinue = () => {
     // Clear the event and resolve it (removes played cards, replenishes hand)
     resolveCurrentEvent()
     setEventResult(undefined)
+    setDiceValue(undefined)
 
     // After event is resolved, show station modal if applicable
     if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing') {
@@ -223,6 +259,8 @@ export function DashboardScreen() {
           onRoll={handleEventRoll}
           result={eventResult}
           onContinue={handleEventContinue}
+          isRolling={isRolling}
+          diceValue={diceValue}
         />
       )}
 
@@ -232,11 +270,22 @@ export function DashboardScreen() {
           country={countries[currentCountryIndex]}
           reward={lastTurnResult.stationReward}
           onContinue={handleDismissStationModal}
+          onVisitShop={handleVisitShop}
+        />
+      )}
+
+      {/* Cart Shop Modal - shows when visiting shop from station */}
+      {showCartShop && (
+        <CartShop
+          money={resources.money}
+          ownedCarts={ownedCarts}
+          onPurchase={handlePurchaseCart}
+          onClose={handleCloseCartShop}
         />
       )}
 
       {/* Turn Result Modal - shows after station modal is dismissed (or immediately if no station) */}
-      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !currentEvent && (
+      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !showCartShop && !currentEvent && (
         <TurnResultDisplay
           result={lastTurnResult}
           onDismiss={handleDismissTurnResult}

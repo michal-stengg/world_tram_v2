@@ -6,6 +6,7 @@ import { startingCrew } from '../../data/crew'
 import { cycleRole } from '../../logic/crew'
 import { cards } from '../../data/cards'
 import { events } from '../../data/events'
+import { getCartById } from '../../data/carts'
 
 // Mock data for tests
 const mockCaptain: Captain = {
@@ -43,6 +44,7 @@ describe('gameStore', () => {
       cardHand: [],
       currentEvent: null,
       selectedCards: [],
+      ownedCarts: [],
     })
   })
 
@@ -694,6 +696,105 @@ describe('gameStore', () => {
         expect(state.selectedCards).toEqual([])
         expect(state.currentEvent).toBeNull()
       })
+    })
+  })
+
+  describe('cart functionality', () => {
+    it('initializes with empty ownedCarts array', () => {
+      const state = useGameStore.getState()
+      expect(state.ownedCarts).toEqual([])
+    })
+
+    it('resets ownedCarts when initializing game', () => {
+      // First, simulate having purchased carts
+      const fuelCart = getCartById('fuel-cart')!
+      useGameStore.setState({
+        ownedCarts: [fuelCart],
+        resources: { ...STARTING_RESOURCES, money: 1000 },
+      })
+
+      expect(useGameStore.getState().ownedCarts).toHaveLength(1)
+
+      // Now initialize game
+      const { initializeGame } = useGameStore.getState()
+      initializeGame()
+
+      expect(useGameStore.getState().ownedCarts).toEqual([])
+    })
+
+    it('purchaseCart adds cart to ownedCarts when can afford', () => {
+      // Set up enough money to afford the fuel cart (price: 100)
+      useGameStore.setState({
+        resources: { ...STARTING_RESOURCES, money: 200 },
+      })
+
+      const { purchaseCart } = useGameStore.getState()
+      purchaseCart('fuel-cart')
+
+      const state = useGameStore.getState()
+      expect(state.ownedCarts).toHaveLength(1)
+      expect(state.ownedCarts[0].id).toBe('fuel-cart')
+    })
+
+    it('purchaseCart deducts money from resources', () => {
+      const initialMoney = 200
+      useGameStore.setState({
+        resources: { ...STARTING_RESOURCES, money: initialMoney },
+      })
+
+      const { purchaseCart } = useGameStore.getState()
+      purchaseCart('fuel-cart') // price is 100
+
+      const state = useGameStore.getState()
+      expect(state.resources.money).toBe(initialMoney - 100)
+    })
+
+    it('purchaseCart does nothing when cannot afford', () => {
+      // Set up not enough money for fuel cart (price: 100)
+      const initialMoney = 50
+      useGameStore.setState({
+        resources: { ...STARTING_RESOURCES, money: initialMoney },
+        ownedCarts: [],
+      })
+
+      const { purchaseCart } = useGameStore.getState()
+      purchaseCart('fuel-cart')
+
+      const state = useGameStore.getState()
+      expect(state.ownedCarts).toHaveLength(0)
+      expect(state.resources.money).toBe(initialMoney)
+    })
+
+    it('purchaseCart does nothing when cart not found', () => {
+      const initialMoney = 200
+      useGameStore.setState({
+        resources: { ...STARTING_RESOURCES, money: initialMoney },
+        ownedCarts: [],
+      })
+
+      const { purchaseCart } = useGameStore.getState()
+      purchaseCart('non-existent-cart')
+
+      const state = useGameStore.getState()
+      expect(state.ownedCarts).toHaveLength(0)
+      expect(state.resources.money).toBe(initialMoney)
+    })
+
+    it('allows purchasing multiple carts', () => {
+      // Set up enough money for multiple carts
+      useGameStore.setState({
+        resources: { ...STARTING_RESOURCES, money: 500 },
+      })
+
+      const { purchaseCart } = useGameStore.getState()
+      purchaseCart('fuel-cart') // price: 100
+      purchaseCart('food-cart') // price: 80
+      purchaseCart('water-cart') // price: 70
+
+      const state = useGameStore.getState()
+      expect(state.ownedCarts).toHaveLength(3)
+      expect(state.ownedCarts.map(c => c.id)).toEqual(['fuel-cart', 'food-cart', 'water-cart'])
+      expect(state.resources.money).toBe(500 - 100 - 80 - 70)
     })
   })
 })

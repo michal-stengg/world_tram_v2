@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { PixelButton } from '../common/PixelButton'
 import { CardHand } from './CardHand'
 import type { GameEvent } from '../../data/events'
@@ -12,6 +14,8 @@ export interface EventModalProps {
   onRoll: () => void
   result?: EventResult
   onContinue: () => void
+  isRolling?: boolean
+  diceValue?: number
 }
 
 export function EventModal({
@@ -22,7 +26,28 @@ export function EventModal({
   onRoll,
   result,
   onContinue,
+  isRolling = false,
+  diceValue,
 }: EventModalProps) {
+  // State for the animated dice display during rolling
+  const [displayedDice, setDisplayedDice] = useState(diceValue || 1)
+
+  // Animate through dice values during rolling
+  useEffect(() => {
+    if (!isRolling) {
+      if (diceValue !== undefined) {
+        setDisplayedDice(diceValue)
+      }
+      return
+    }
+
+    // Cycle through dice values rapidly while rolling
+    const interval = setInterval(() => {
+      setDisplayedDice((prev) => (prev % 6) + 1)
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [isRolling, diceValue])
   const overlayStyle: React.CSSProperties = {
     position: 'fixed',
     top: 0,
@@ -124,6 +149,37 @@ export function EventModal({
     fontWeight: 'bold',
   }
 
+  const diceContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem',
+    margin: '1.5rem 0',
+  }
+
+  const diceBoxStyle: React.CSSProperties = {
+    width: '100px',
+    height: '100px',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '3rem',
+    fontWeight: 'bold',
+    color: '#1a1a2e',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+    border: '4px solid var(--color-gold, #F7B538)',
+  }
+
+  const rollingTextStyle: React.CSSProperties = {
+    marginTop: '1rem',
+    fontSize: '1.25rem',
+    color: 'var(--color-gold, #F7B538)',
+    fontWeight: 'bold',
+  }
+
   const formatPenalty = (penalty: GameEvent['penalty']) => {
     if (penalty.type === 'progress') {
       return `${penalty.amount} progress`
@@ -155,7 +211,7 @@ export function EventModal({
           <span style={valueStyle} data-testid="event-penalty">{formatPenalty(event.penalty)}</span>
         </div>
 
-        {!hasResult && (
+        {!hasResult && !isRolling && (
           <>
             <div style={cardSectionStyle}>
               <div style={cardSectionLabelStyle}>Select cards to boost your roll:</div>
@@ -171,6 +227,36 @@ export function EventModal({
             </PixelButton>
           </>
         )}
+
+        <AnimatePresence>
+          {isRolling && (
+            <div style={diceContainerStyle} data-testid="dice-rolling">
+              <motion.div
+                style={diceBoxStyle}
+                initial={{ rotate: 0, scale: 0.8 }}
+                animate={{
+                  rotate: [0, -15, 15, -10, 10, 0],
+                  scale: [0.8, 1.1, 0.9, 1.05, 1],
+                }}
+                transition={{
+                  duration: 0.5,
+                  repeat: Infinity,
+                  repeatType: 'loop',
+                }}
+              >
+                <span data-testid="dice-value">{displayedDice}</span>
+              </motion.div>
+              <motion.div
+                style={rollingTextStyle}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              >
+                Rolling...
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {hasResult && (
           <>

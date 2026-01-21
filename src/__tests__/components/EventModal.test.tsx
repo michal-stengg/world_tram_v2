@@ -485,4 +485,106 @@ describe('EventModal', () => {
       expect(screen.getByTestId('event-penalty')).toHaveTextContent('5')
     })
   })
+
+  describe('dice rolling animation', () => {
+    it('shows rolling indicator when isRolling is true', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          isRolling={true}
+          diceValue={4}
+        />
+      )
+      expect(screen.getByTestId('dice-rolling')).toBeInTheDocument()
+      expect(screen.getByText(/rolling/i)).toBeInTheDocument()
+    })
+
+    it('hides the Roll button when isRolling is true', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          isRolling={true}
+          diceValue={4}
+        />
+      )
+      expect(screen.queryByRole('button', { name: /roll/i })).not.toBeInTheDocument()
+    })
+
+    it('hides the CardHand when isRolling is true', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          isRolling={true}
+          diceValue={4}
+        />
+      )
+      expect(screen.queryByTestId('card-hand')).not.toBeInTheDocument()
+    })
+
+    it('displays the dice value when isRolling is true', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          isRolling={true}
+          diceValue={4}
+        />
+      )
+      expect(screen.getByTestId('dice-value')).toHaveTextContent('4')
+    })
+
+    it('shows normal behavior when isRolling is false (default)', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          isRolling={false}
+        />
+      )
+      // Should show normal pre-roll state
+      expect(screen.getByTestId('card-hand')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /roll/i })).toBeInTheDocument()
+      expect(screen.queryByTestId('dice-rolling')).not.toBeInTheDocument()
+    })
+
+    it('shows normal behavior when isRolling is undefined', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+        />
+      )
+      // Should show normal pre-roll state
+      expect(screen.getByTestId('card-hand')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /roll/i })).toBeInTheDocument()
+      expect(screen.queryByTestId('dice-rolling')).not.toBeInTheDocument()
+    })
+  })
 })

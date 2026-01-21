@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { act } from 'react'
 import { DashboardScreen } from '../../components/screens/DashboardScreen'
@@ -536,6 +536,9 @@ describe('DashboardScreen', () => {
     }
 
     beforeEach(() => {
+      // Use fake timers for dice rolling animation
+      vi.useFakeTimers()
+
       act(() => {
         useGameStore.setState({
           currentScreen: 'dashboard',
@@ -554,6 +557,17 @@ describe('DashboardScreen', () => {
         })
       })
     })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    // Helper to advance timers past dice rolling animation
+    const advanceDiceRollingAnimation = () => {
+      act(() => {
+        vi.advanceTimersByTime(1600) // 1500ms animation + buffer
+      })
+    }
 
     it('shows EventModal when turn result has eventTriggered', () => {
       act(() => {
@@ -640,6 +654,9 @@ describe('DashboardScreen', () => {
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
 
+      // Advance timers past dice rolling animation
+      advanceDiceRollingAnimation()
+
       // Should show the result
       expect(screen.getByTestId('event-result')).toBeInTheDocument()
     })
@@ -658,6 +675,9 @@ describe('DashboardScreen', () => {
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
 
+      // Advance timers past dice rolling animation
+      advanceDiceRollingAnimation()
+
       // Should show Continue button
       expect(screen.getByRole('button', { name: /continue/i })).toBeInTheDocument()
     })
@@ -675,6 +695,9 @@ describe('DashboardScreen', () => {
       // Click Roll button
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
+
+      // Advance timers past dice rolling animation
+      advanceDiceRollingAnimation()
 
       // Click Continue button
       const continueButton = screen.getByRole('button', { name: /continue/i })
@@ -697,6 +720,7 @@ describe('DashboardScreen', () => {
 
       // Roll and continue
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Turn result should now be visible
@@ -728,6 +752,7 @@ describe('DashboardScreen', () => {
 
       // Roll and continue
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Now station modal should be visible
@@ -765,10 +790,128 @@ describe('DashboardScreen', () => {
 
       // Roll and continue
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
+      advanceDiceRollingAnimation()
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
       // Selected cards should be cleared
       expect(useGameStore.getState().selectedCards).toHaveLength(0)
+    })
+  })
+
+  describe('cart shop integration', () => {
+    const mockTurnResultWithStation: TurnResult = {
+      diceRoll: 6,
+      movement: 10,
+      resourceChanges: { food: -2, fuel: -3, water: -1, money: -5 },
+      newResources: { food: 48, fuel: 47, water: 100, money: 200 },
+      newCountryIndex: 1,
+      newProgress: 0,
+      arrivedAtCountry: true,
+      gameStatus: 'playing',
+      newTurnCount: 2,
+      stationReward: { waterRefill: 50, moneyEarned: 25 },
+      eventTriggered: false,
+    }
+
+    beforeEach(() => {
+      act(() => {
+        useGameStore.setState({
+          currentScreen: 'dashboard',
+          selectedCaptain: mockCaptain,
+          selectedTrain: mockTrain,
+          resources: { food: 50, fuel: 50, water: 100, money: 200 },
+          crew: [...startingCrew],
+          currentCountryIndex: 1,
+          progressInCountry: 0,
+          turnCount: 2,
+          lastTurnResult: null,
+          gameOverReason: null,
+          ownedCarts: [],
+          currentEvent: null,
+          cardHand: [],
+          selectedCards: [],
+        })
+      })
+    })
+
+    it('shows Visit Shop button in station modal', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+          currentEvent: null,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.getByTestId('station-modal')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /visit shop/i })).toBeInTheDocument()
+    })
+
+    it('opens CartShop when Visit Shop clicked', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+          currentEvent: null,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Click Visit Shop button
+      fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
+
+      // CartShop should be visible
+      expect(screen.getByTestId('cart-shop')).toBeInTheDocument()
+      // StationModal should be hidden
+      expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
+    })
+
+    it('closes CartShop and continues when CartShop closed', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+          currentEvent: null,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Open cart shop
+      fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
+      expect(screen.getByTestId('cart-shop')).toBeInTheDocument()
+
+      // Close cart shop
+      fireEvent.click(screen.getByRole('button', { name: /close/i }))
+
+      // CartShop should be hidden, TurnResultDisplay should show
+      expect(screen.queryByTestId('cart-shop')).not.toBeInTheDocument()
+      expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
+    })
+
+    it('can purchase cart from shop', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+          currentEvent: null,
+          resources: { food: 50, fuel: 50, water: 100, money: 200 },
+          ownedCarts: [],
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Open cart shop
+      fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
+
+      // Find and click buy on first cart
+      const buyButton = screen.getAllByRole('button', { name: /buy/i })[0]
+      fireEvent.click(buyButton)
+
+      // Should now have an owned cart
+      expect(useGameStore.getState().ownedCarts.length).toBeGreaterThan(0)
+      // Money should be reduced
+      expect(useGameStore.getState().resources.money).toBeLessThan(200)
     })
   })
 })

@@ -27,21 +27,29 @@
   --color-warning: #f39c12;
 
   /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  --spacing-xs: 6px;
+  --spacing-sm: 12px;
+  --spacing-md: 24px;
+  --spacing-lg: 36px;
+  --spacing-xl: 48px;
 
   /* Border radius for pixel look */
   --border-radius: 4px;
 
   /* Font sizes */
-  --font-size-sm: 12px;
-  --font-size-md: 16px;
-  --font-size-lg: 24px;
-  --font-size-xl: 32px;
-  --font-size-title: 48px;
+  --font-size-sm: 16px;
+  --font-size-md: 20px;
+  --font-size-lg: 32px;
+  --font-size-xl: 48px;
+  --font-size-title: 64px;
+}
+
+/* ===========================================
+   Base HTML Font Size (for rem scaling)
+   =========================================== */
+
+html {
+  font-size: 20px;
 }
 
 /* ===========================================

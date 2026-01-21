@@ -909,7 +909,7 @@
 ## 8.1 Cart Data & Logic
 
 ### 8.1.1 Cart Definitions
-- [ ] Create cart data
+- [x] Create cart data
   - File: `src/data/carts.ts`
   - Tests: `src/__tests__/data/carts.test.ts`
   - Carts from PRD: Fuel Cart, Food Cart, Water Cart, Spare Parts, Security, Passenger
@@ -917,7 +917,7 @@
   - Depends: 1.1.2
 
 ### 8.1.2 Cart Purchase Logic
-- [ ] Implement cart purchase and effects
+- [x] Implement cart purchase and effects
   - File: `src/logic/carts.ts`
   - Tests: `src/__tests__/logic/carts.test.ts`
   - Functions: `canPurchaseCart(cart, money)`, `applyCartEffect(cart, gameState)`
@@ -928,7 +928,7 @@
 ## 8.2 Cart Store & UI
 
 ### 8.2.1 Cart State
-- [ ] Add cart state to store
+- [x] Add cart state to store
   - File: `src/stores/gameStore.ts` (extend)
   - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
   - State: ownedCarts
@@ -936,7 +936,7 @@
   - Depends: 8.1.2
 
 ### 8.2.2 CartShop Component
-- [ ] Create cart shop modal
+- [x] Create cart shop modal
   - File: `src/components/game/CartShop.tsx`
   - Tests: `src/__tests__/components/CartShop.test.tsx`
   - Shows: Available carts, prices, effects
@@ -944,7 +944,7 @@
   - Depends: 8.1.1, 8.2.1
 
 ### 8.2.3 Station Shop Integration
-- [ ] Add cart shop to station arrival
+- [x] Add cart shop to station arrival
   - File: `src/components/game/StationModal.tsx` (update)
   - Tests: `src/__tests__/components/StationModal.test.tsx` (update)
   - After rewards: show "Visit Shop?" button
@@ -956,7 +956,7 @@
 ## 8.3 Phase 8 Verification
 
 ### 8.3.1 Cart Integration Test
-- [ ] Test cart purchasing flow
+- [x] Test cart purchasing flow
   - File: `src/__tests__/integration/phase8-carts.test.tsx`
   - Test: Can purchase cart at station
   - Test: Cart effects apply correctly

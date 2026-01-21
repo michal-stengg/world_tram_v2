@@ -1,10 +1,16 @@
 import { ResourceMeter } from '../common/ResourceMeter'
 import { useGameStore } from '../../stores/gameStore'
 import { MAX_RESOURCES } from '../../data/constants'
+import { calculateResourcePreview } from '../../logic/resourcePreview'
 
 export function ResourceBar() {
   const resources = useGameStore((state) => state.resources)
   const turnCount = useGameStore((state) => state.turnCount)
+  const crew = useGameStore((state) => state.crew)
+  const captain = useGameStore((state) => state.selectedCaptain)
+  const train = useGameStore((state) => state.selectedTrain)
+
+  const preview = calculateResourcePreview(crew, captain, train)
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -46,6 +52,7 @@ export function ResourceBar() {
           current={resources.food}
           max={MAX_RESOURCES.food}
           color="#3E8914"
+          previewDelta={preview.food}
         />
         <ResourceMeter
           icon="⛽"
@@ -53,6 +60,7 @@ export function ResourceBar() {
           current={resources.fuel}
           max={MAX_RESOURCES.fuel}
           color="#1B4B8C"
+          previewDelta={preview.fuel}
         />
         <ResourceMeter
           icon="💧"
@@ -60,6 +68,7 @@ export function ResourceBar() {
           current={resources.water}
           max={MAX_RESOURCES.water}
           color="#4A90D9"
+          previewDelta={preview.water}
         />
         <ResourceMeter
           icon="💰"
@@ -67,6 +76,7 @@ export function ResourceBar() {
           current={resources.money}
           max={MAX_RESOURCES.money}
           color="#F7B538"
+          previewDelta={preview.money}
         />
       </div>
       <div style={turnCounterStyle} data-testid="turn-counter">

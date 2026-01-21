@@ -58,6 +58,14 @@ export interface Resources {
   money: number;
 }
 
+// Maximum resource limits (can be modified by carts)
+export interface MaxResources {
+  food: number;
+  fuel: number;
+  water: number;
+  money: number;
+}
+
 // Country/route definition
 export interface Country {
   id: string;
@@ -65,4 +73,18 @@ export interface Country {
   icon: string;           // emoji representing the country
   landmark: string;       // famous landmark description
   distanceRequired: number; // distance units needed to reach next country
+}
+
+// Cart effect types
+export type CartEffectType = 'maxFuel' | 'maxFood' | 'maxWater' | 'fuelEfficiency' | 'security' | 'income';
+
+// Cart definition
+export interface Cart {
+  id: string;
+  name: string;
+  icon: string;
+  price: number;
+  effectType: CartEffectType;
+  effectValue: number;
+  description: string;
 }

@@ -172,4 +172,47 @@ describe('StationModal', () => {
       expect(onContinue).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('shop button', () => {
+    it('does not render Visit Shop button when onVisitShop not provided', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+        />
+      )
+
+      expect(screen.queryByRole('button', { name: /visit shop/i })).not.toBeInTheDocument()
+    })
+
+    it('renders Visit Shop button when onVisitShop is provided', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onVisitShop={vi.fn()}
+        />
+      )
+
+      expect(screen.getByRole('button', { name: /visit shop/i })).toBeInTheDocument()
+    })
+
+    it('calls onVisitShop when Visit Shop button clicked', () => {
+      const onVisitShop = vi.fn()
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onVisitShop={onVisitShop}
+        />
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
+
+      expect(onVisitShop).toHaveBeenCalledTimes(1)
+    })
+  })
 })

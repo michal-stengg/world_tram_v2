@@ -1,9 +1,12 @@
+import { useState, useEffect } from 'react'
 import { ResourceBar } from '../game/ResourceBar'
 import { JourneyTrack } from '../game/JourneyTrack'
 import { CrewPanel } from '../game/CrewPanel'
 import { TurnResultDisplay } from '../game/TurnResultDisplay'
+import { StationModal } from '../game/StationModal'
 import { GoButton } from '../game/GoButton'
 import { useGameStore } from '../../stores/gameStore'
+import { countries } from '../../data/countries'
 
 const containerStyle: React.CSSProperties = {
   display: 'flex',
@@ -81,6 +84,23 @@ export function DashboardScreen() {
   const executeTurn = useGameStore((state) => state.executeTurn)
   const clearTurnResult = useGameStore((state) => state.clearTurnResult)
   const lastTurnResult = useGameStore((state) => state.lastTurnResult)
+  const currentCountryIndex = useGameStore((state) => state.currentCountryIndex)
+
+  // Track whether we're showing the station modal (before showing turn result)
+  const [showStationModal, setShowStationModal] = useState(false)
+
+  // When a new turn result comes in with a stationReward, show the station modal first
+  useEffect(() => {
+    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing') {
+      setShowStationModal(true)
+    } else {
+      setShowStationModal(false)
+    }
+  }, [lastTurnResult])
+
+  const handleDismissStationModal = () => {
+    setShowStationModal(false)
+  }
 
   const handleDismissTurnResult = () => {
     clearTurnResult()
@@ -131,8 +151,17 @@ export function DashboardScreen() {
         </div>
       </div>
 
-      {/* Turn Result Modal */}
-      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && (
+      {/* Station Modal - shows when arriving at a new country */}
+      {showStationModal && lastTurnResult?.stationReward && (
+        <StationModal
+          country={countries[currentCountryIndex]}
+          reward={lastTurnResult.stationReward}
+          onContinue={handleDismissStationModal}
+        />
+      )}
+
+      {/* Turn Result Modal - shows after station modal is dismissed (or immediately if no station) */}
+      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && (
         <TurnResultDisplay
           result={lastTurnResult}
           onDismiss={handleDismissTurnResult}

@@ -179,5 +179,79 @@ describe('turn processor', () => {
       // Progress 5 + movement 8 = 13, arrives at country 1
       expect(result.arrivedAtCountry).toBe(true)
     })
+
+    describe('station arrival rewards', () => {
+      it('should include stationReward in TurnResult when arriving at new country', () => {
+        const state = createGameState({ progressInCountry: 5 })
+        const result = processTurn(state)
+
+        // Progress 5 + movement 8 = 13, arrives at country 1
+        expect(result.arrivedAtCountry).toBe(true)
+        expect(result.stationReward).toBeDefined()
+        expect(result.stationReward).toHaveProperty('waterRefill')
+        expect(result.stationReward).toHaveProperty('moneyEarned')
+      })
+
+      it('should NOT include stationReward when staying in same country', () => {
+        const state = createGameState({ progressInCountry: 0 })
+        const result = processTurn(state)
+
+        // Progress 0 + movement 8 = 8, still in first country (needs 10)
+        expect(result.arrivedAtCountry).toBe(false)
+        expect(result.stationReward).toBeUndefined()
+      })
+
+      it('should refill water when arriving at station', () => {
+        const state = createGameState({
+          progressInCountry: 5,
+          resources: { food: 100, fuel: 100, water: 20, money: 200 },
+        })
+        const result = processTurn(state)
+
+        // Arriving at station should refill water to max (100)
+        // Initial water 20, consumption from turn, then refill
+        expect(result.arrivedAtCountry).toBe(true)
+        expect(result.stationReward).toBeDefined()
+        expect(result.stationReward!.waterRefill).toBeGreaterThan(0)
+        // Final water should be higher than without station reward
+        // Water after consumption + refill
+        expect(result.newResources.water).toBeGreaterThan(20) // Should be refilled
+      })
+
+      it('should add money when arriving at station', () => {
+        const state = createGameState({
+          progressInCountry: 5,
+          resources: { food: 100, fuel: 100, water: 50, money: 200 },
+        })
+        const result = processTurn(state)
+
+        // Arriving at station should earn money based on captain security stat
+        // Base 10 + (security 3 * 5) = 25
+        expect(result.arrivedAtCountry).toBe(true)
+        expect(result.stationReward).toBeDefined()
+        expect(result.stationReward!.moneyEarned).toBe(25)
+        // Final money should include wages deduction + station reward
+        // Money after changes should reflect the station reward
+      })
+
+      it('should apply station rewards to final resources', () => {
+        const state = createGameState({
+          progressInCountry: 5,
+          resources: { food: 100, fuel: 100, water: 50, money: 200 },
+        })
+        const result = processTurn(state)
+
+        // Resource changes should NOT include station rewards (they're separate)
+        // But newResources SHOULD include station rewards
+        expect(result.arrivedAtCountry).toBe(true)
+
+        // Calculate expected final money:
+        // Starting: 200, wages: -(4 crew * 5 base) = -20, station: +25
+        // Net: 200 - 20 + 25 = 205
+        const expectedMoneyAfterWages = 200 + result.resourceChanges.money
+        const expectedFinalMoney = expectedMoneyAfterWages + result.stationReward!.moneyEarned
+        expect(result.newResources.money).toBe(expectedFinalMoney)
+      })
+    })
   })
 })

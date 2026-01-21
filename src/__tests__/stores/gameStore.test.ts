@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useGameStore } from '../../stores/gameStore'
 import type { GameScreen, Captain, Train, CrewMember } from '../../types'
 import { STARTING_RESOURCES } from '../../data/constants'
 import { startingCrew } from '../../data/crew'
 import { cycleRole } from '../../logic/crew'
+import { cards, BonusCard } from '../../data/cards'
+import { events, GameEvent } from '../../data/events'
 
 // Mock data for tests
 const mockCaptain: Captain = {
@@ -498,6 +500,197 @@ describe('gameStore', () => {
       expect(updatedCrew[0].role).toBe('engineer') // unchanged
       expect(updatedCrew[1].role).toBe('security') // cook -> security
       expect(updatedCrew[2].role).toBe('security') // unchanged
+    })
+  })
+
+  describe('card hand state', () => {
+    describe('initial card state', () => {
+      it('should have cardHand as empty array initially', () => {
+        const state = useGameStore.getState()
+        expect(state.cardHand).toEqual([])
+      })
+
+      it('should have currentEvent as null initially', () => {
+        const state = useGameStore.getState()
+        expect(state.currentEvent).toBeNull()
+      })
+
+      it('should have selectedCards as empty array initially', () => {
+        const state = useGameStore.getState()
+        expect(state.selectedCards).toEqual([])
+      })
+    })
+
+    describe('initializeCards', () => {
+      it('should create a hand of exactly 3 cards', () => {
+        const { initializeCards } = useGameStore.getState()
+        initializeCards()
+
+        const state = useGameStore.getState()
+        expect(state.cardHand).toHaveLength(3)
+      })
+
+      it('should draw valid BonusCards from the card pool', () => {
+        const { initializeCards } = useGameStore.getState()
+        initializeCards()
+
+        const state = useGameStore.getState()
+        const cardIds = cards.map(c => c.id)
+        state.cardHand.forEach(card => {
+          expect(cardIds).toContain(card.id)
+          expect(card).toHaveProperty('name')
+          expect(card).toHaveProperty('stat')
+          expect(card).toHaveProperty('bonus')
+        })
+      })
+
+      it('should clear selectedCards when initializing', () => {
+        useGameStore.setState({ selectedCards: ['some-card-id'] })
+
+        const { initializeCards } = useGameStore.getState()
+        initializeCards()
+
+        expect(useGameStore.getState().selectedCards).toEqual([])
+      })
+
+      it('should clear currentEvent when initializing', () => {
+        useGameStore.setState({ currentEvent: events[0] })
+
+        const { initializeCards } = useGameStore.getState()
+        initializeCards()
+
+        expect(useGameStore.getState().currentEvent).toBeNull()
+      })
+    })
+
+    describe('selectCard', () => {
+      beforeEach(() => {
+        // Set up a hand with known cards
+        useGameStore.setState({
+          cardHand: [cards[0], cards[1], cards[2]],
+          selectedCards: [],
+        })
+      })
+
+      it('should add card id to selectedCards when not selected', () => {
+        const { selectCard } = useGameStore.getState()
+        selectCard(cards[0].id)
+
+        expect(useGameStore.getState().selectedCards).toContain(cards[0].id)
+      })
+
+      it('should remove card id from selectedCards when already selected (toggle)', () => {
+        useGameStore.setState({ selectedCards: [cards[0].id] })
+
+        const { selectCard } = useGameStore.getState()
+        selectCard(cards[0].id)
+
+        expect(useGameStore.getState().selectedCards).not.toContain(cards[0].id)
+      })
+
+      it('should allow selecting multiple cards', () => {
+        const { selectCard } = useGameStore.getState()
+        selectCard(cards[0].id)
+        selectCard(cards[1].id)
+
+        const selectedCards = useGameStore.getState().selectedCards
+        expect(selectedCards).toContain(cards[0].id)
+        expect(selectedCards).toContain(cards[1].id)
+        expect(selectedCards).toHaveLength(2)
+      })
+
+      it('should toggle cards independently', () => {
+        const { selectCard } = useGameStore.getState()
+        selectCard(cards[0].id)
+        selectCard(cards[1].id)
+        selectCard(cards[0].id) // deselect first card
+
+        const selectedCards = useGameStore.getState().selectedCards
+        expect(selectedCards).not.toContain(cards[0].id)
+        expect(selectedCards).toContain(cards[1].id)
+        expect(selectedCards).toHaveLength(1)
+      })
+    })
+
+    describe('setCurrentEvent', () => {
+      it('should set the current event', () => {
+        const { setCurrentEvent } = useGameStore.getState()
+        setCurrentEvent(events[0])
+
+        expect(useGameStore.getState().currentEvent).toEqual(events[0])
+      })
+
+      it('should allow setting event to null', () => {
+        useGameStore.setState({ currentEvent: events[0] })
+
+        const { setCurrentEvent } = useGameStore.getState()
+        setCurrentEvent(null)
+
+        expect(useGameStore.getState().currentEvent).toBeNull()
+      })
+    })
+
+    describe('resolveCurrentEvent', () => {
+      beforeEach(() => {
+        // Set up state with event, cards, and selection
+        useGameStore.setState({
+          cardHand: [cards[0], cards[1], cards[2]],
+          selectedCards: [cards[0].id],
+          currentEvent: events[0],
+          resources: { ...STARTING_RESOURCES },
+        })
+      })
+
+      it('should clear currentEvent after resolution', () => {
+        const { resolveCurrentEvent } = useGameStore.getState()
+        resolveCurrentEvent()
+
+        expect(useGameStore.getState().currentEvent).toBeNull()
+      })
+
+      it('should clear selectedCards after resolution', () => {
+        const { resolveCurrentEvent } = useGameStore.getState()
+        resolveCurrentEvent()
+
+        expect(useGameStore.getState().selectedCards).toEqual([])
+      })
+
+      it('should remove played cards from hand', () => {
+        const { resolveCurrentEvent } = useGameStore.getState()
+        resolveCurrentEvent()
+
+        const hand = useGameStore.getState().cardHand
+        expect(hand.find(c => c.id === cards[0].id)).toBeUndefined()
+      })
+
+      it('should replenish hand back to 3 cards after playing cards', () => {
+        const { resolveCurrentEvent } = useGameStore.getState()
+        resolveCurrentEvent()
+
+        expect(useGameStore.getState().cardHand).toHaveLength(3)
+      })
+
+      it('should do nothing if no currentEvent', () => {
+        useGameStore.setState({ currentEvent: null })
+
+        const initialHand = [...useGameStore.getState().cardHand]
+        const { resolveCurrentEvent } = useGameStore.getState()
+        resolveCurrentEvent()
+
+        expect(useGameStore.getState().cardHand).toEqual(initialHand)
+      })
+    })
+
+    describe('initializeGame with cards', () => {
+      it('should initialize cards when game is initialized', () => {
+        const { initializeGame } = useGameStore.getState()
+        initializeGame()
+
+        const state = useGameStore.getState()
+        expect(state.cardHand).toHaveLength(3)
+        expect(state.selectedCards).toEqual([])
+        expect(state.currentEvent).toBeNull()
+      })
     })
   })
 })

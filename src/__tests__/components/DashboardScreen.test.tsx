@@ -6,6 +6,7 @@ import { useGameStore } from '../../stores/gameStore'
 import { STARTING_RESOURCES, MAX_RESOURCES } from '../../data/constants'
 import { startingCrew } from '../../data/crew'
 import type { Captain, Train } from '../../types'
+import type { TurnResult } from '../../logic/turn'
 
 const mockCaptain: Captain = {
   id: 'renji',
@@ -199,6 +200,11 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
+      // If we arrived at a station, dismiss the station modal first
+      if (screen.queryByTestId('station-modal')) {
+        fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+      }
+
       expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
     })
 
@@ -241,6 +247,12 @@ describe('DashboardScreen', () => {
       fireEvent.click(goButton)
       expect(useGameStore.getState().lastTurnResult).not.toBeNull()
 
+      // If we arrived at a station, dismiss the station modal first
+      if (screen.queryByTestId('station-modal')) {
+        fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+      }
+
+      // Now dismiss the turn result modal
       const continueButton = screen.getByRole('button', { name: /continue/i })
       fireEvent.click(continueButton)
 
@@ -297,6 +309,141 @@ describe('DashboardScreen', () => {
     it('renders selection info section', () => {
       render(<DashboardScreen />)
       expect(screen.getByTestId('selection-info')).toBeInTheDocument()
+    })
+  })
+
+  describe('station modal integration', () => {
+    const mockTurnResultWithStation: TurnResult = {
+      diceRoll: 6,
+      movement: 10,
+      resourceChanges: { food: -2, fuel: -3, water: -1, money: -5 },
+      newResources: { food: 48, fuel: 47, water: 100, money: 120 },
+      newCountryIndex: 1,
+      newProgress: 0,
+      arrivedAtCountry: true,
+      gameStatus: 'playing',
+      newTurnCount: 2,
+      stationReward: { waterRefill: 50, moneyEarned: 25 },
+    }
+
+    const mockTurnResultWithoutStation: TurnResult = {
+      diceRoll: 3,
+      movement: 5,
+      resourceChanges: { food: -2, fuel: -3, water: -1, money: -5 },
+      newResources: { food: 48, fuel: 47, water: 49, money: 95 },
+      newCountryIndex: 0,
+      newProgress: 5,
+      arrivedAtCountry: false,
+      gameStatus: 'playing',
+      newTurnCount: 2,
+    }
+
+    it('shows StationModal when lastTurnResult has stationReward', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.getByTestId('station-modal')).toBeInTheDocument()
+    })
+
+    it('does NOT show StationModal when no stationReward', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithoutStation,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
+      expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
+    })
+
+    it('shows correct country name in StationModal', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Country at index 1 is Germany
+      expect(screen.getByText(/Welcome to Germany!/)).toBeInTheDocument()
+    })
+
+    it('shows correct reward values in StationModal', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.getByTestId('water-reward')).toHaveTextContent('+50')
+      expect(screen.getByTestId('money-reward')).toHaveTextContent('+$25')
+    })
+
+    it('hides StationModal and shows TurnResultDisplay after dismissing', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+        })
+      })
+      render(<DashboardScreen />)
+
+      // Station modal should be visible
+      expect(screen.getByTestId('station-modal')).toBeInTheDocument()
+      expect(screen.queryByTestId('turn-result-display')).not.toBeInTheDocument()
+
+      // Click continue to dismiss station modal
+      const continueButton = screen.getByRole('button', { name: /continue/i })
+      fireEvent.click(continueButton)
+
+      // Now station modal should be hidden and turn result should show
+      expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
+      expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
+    })
+
+    it('dismisses station modal when clicking overlay', () => {
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: mockTurnResultWithStation,
+          currentCountryIndex: 1,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.getByTestId('station-modal')).toBeInTheDocument()
+
+      // Click overlay to dismiss
+      const overlay = screen.getByTestId('station-modal-overlay')
+      fireEvent.click(overlay)
+
+      // Station modal should be hidden, turn result should show
+      expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
+      expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
+    })
+
+    it('does not show StationModal when game status is not playing', () => {
+      const turnResultVictory: TurnResult = {
+        ...mockTurnResultWithStation,
+        gameStatus: 'victory',
+      }
+      act(() => {
+        useGameStore.setState({
+          lastTurnResult: turnResultVictory,
+          currentCountryIndex: 9,
+        })
+      })
+      render(<DashboardScreen />)
+
+      expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
     })
   })
 })

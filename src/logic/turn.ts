@@ -11,6 +11,8 @@ import {
 } from './resources'
 import { checkVictory, checkGameOver } from './conditions'
 import type { GameOverReason } from './conditions'
+import { processStationArrival } from './station'
+import type { StationReward } from './station'
 import { countries } from '../data/countries'
 import type { Captain, Train, CrewMember, Resources } from '../types'
 
@@ -37,6 +39,7 @@ export interface TurnResult {
   gameStatus: GameStatus
   gameOverReason?: GameOverReason
   newTurnCount: number
+  stationReward?: StationReward
 }
 
 /**
@@ -76,12 +79,29 @@ export function processTurn(state: GameState): TurnResult {
   }
 
   // 7. Apply changes
-  const newResources = applyResourceChanges(state.resources, resourceChanges)
+  let newResources = applyResourceChanges(state.resources, resourceChanges)
 
-  // 8. Increment turn count
+  // 8. Process station arrival if we reached a new country
+  let stationReward: StationReward | undefined
+  if (advanceResult.arrivedAtNextCountry) {
+    const arrivedCountry = countries[advanceResult.newCountryIndex]
+    stationReward = processStationArrival(
+      arrivedCountry,
+      state.captain.stats.security,
+      newResources.water
+    )
+    // Apply station rewards to resources
+    newResources = {
+      ...newResources,
+      water: newResources.water + stationReward.waterRefill,
+      money: newResources.money + stationReward.moneyEarned,
+    }
+  }
+
+  // 9. Increment turn count
   const newTurnCount = state.turnCount + 1
 
-  // 9. Check game end conditions
+  // 10. Check game end conditions
   let gameStatus: GameStatus = 'playing'
   let gameOverReason: GameOverReason | undefined
 
@@ -108,5 +128,6 @@ export function processTurn(state: GameState): TurnResult {
     gameStatus,
     gameOverReason,
     newTurnCount,
+    stationReward,
   }
 }

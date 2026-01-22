@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { processTurn } from '../../logic/turn'
 import type { GameState } from '../../logic/turn'
-import type { Captain, Train, CrewMember } from '../../types'
+import type { Captain, Train, CrewMember, CargoItem } from '../../types'
 import { STARTING_RESOURCES } from '../../data/constants'
 import * as eventsModule from '../../logic/events'
+import * as cargoModule from '../../logic/cargo'
 
 // Mock dice for predictable tests
 vi.mock('../../logic/dice', () => ({
@@ -24,6 +25,20 @@ vi.mock('../../logic/events', () => ({
       resource: 'fuel',
       amount: 20,
     },
+  })),
+}))
+
+// Mock cargo module for controllable cargo discovery tests
+vi.mock('../../logic/cargo', () => ({
+  shouldDiscoverCargo: vi.fn(() => false),
+  selectRandomCargo: vi.fn(() => ({
+    id: 'test-cargo',
+    name: 'Test Cargo',
+    icon: '📦',
+    rarity: 'common',
+    rewardType: 'money',
+    rewardAmount: 50,
+    description: 'A test cargo item',
   })),
 }))
 
@@ -351,6 +366,88 @@ describe('turn processor', () => {
         expect(result.movement).toBe(8) // dice (5) + train speed (3)
         expect(result.newProgress).toBe(8)
         expect(result.eventTriggered).toBe(true)
+      })
+    })
+
+    describe('cargo discovery', () => {
+      const mockCargoItem: CargoItem = {
+        id: 'test-cargo',
+        name: 'Test Cargo',
+        icon: '📦',
+        rarity: 'common',
+        rewardType: 'money',
+        rewardAmount: 50,
+        description: 'A test cargo item',
+      }
+
+      beforeEach(() => {
+        vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(false)
+        vi.mocked(cargoModule.selectRandomCargo).mockReturnValue(mockCargoItem)
+      })
+
+      it('should include cargoDiscovered in TurnResult', () => {
+        const state = createGameState()
+        const result = processTurn(state)
+
+        expect(result).toHaveProperty('cargoDiscovered')
+      })
+
+      it('should set cargoDiscovered to undefined when cargo is not discovered', () => {
+        vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(false)
+
+        const state = createGameState()
+        const result = processTurn(state)
+
+        expect(result.cargoDiscovered).toBeUndefined()
+      })
+
+      it('should set cargoDiscovered to a valid CargoItem when discovered during travel', () => {
+        vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(true)
+
+        // State where we don't arrive at a station (progress 0 + movement 8 < 10)
+        const state = createGameState({ progressInCountry: 0 })
+        const result = processTurn(state)
+
+        expect(result.arrivedAtCountry).toBe(false)
+        expect(result.cargoDiscovered).toBeDefined()
+        expect(result.cargoDiscovered).toEqual(mockCargoItem)
+      })
+
+      it('should NOT set cargoDiscovered when arriving at station even if shouldDiscoverCargo returns true', () => {
+        vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(true)
+
+        // State where we DO arrive at a station (progress 5 + movement 8 >= 10)
+        const state = createGameState({ progressInCountry: 5 })
+        const result = processTurn(state)
+
+        expect(result.arrivedAtCountry).toBe(true)
+        expect(result.cargoDiscovered).toBeUndefined()
+      })
+
+      it('should call selectRandomCargo only when shouldDiscoverCargo returns true and not arriving at station', () => {
+        vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(false)
+        vi.mocked(cargoModule.selectRandomCargo).mockClear()
+
+        const state = createGameState({ progressInCountry: 0 })
+        processTurn(state)
+
+        expect(cargoModule.selectRandomCargo).not.toHaveBeenCalled()
+
+        vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(true)
+        processTurn(state)
+
+        expect(cargoModule.selectRandomCargo).toHaveBeenCalledTimes(1)
+      })
+
+      it('should NOT call selectRandomCargo when arriving at station even if shouldDiscoverCargo returns true', () => {
+        vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(true)
+        vi.mocked(cargoModule.selectRandomCargo).mockClear()
+
+        // State where we arrive at a station
+        const state = createGameState({ progressInCountry: 5 })
+        processTurn(state)
+
+        expect(cargoModule.selectRandomCargo).not.toHaveBeenCalled()
       })
     })
   })

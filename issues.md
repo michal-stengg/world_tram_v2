@@ -971,16 +971,296 @@
 > **Testable Outcome:** Arrive at France, play Croissant Catcher, earn bonus food based on score.
 > **Builds on Phase 8:** Adds engagement and skill-based rewards.
 
-(Tasks would follow similar pattern - data, logic, UI, verification)
+---
+
+## 9.1 Mini-Game Data & Types
+
+### 9.1.1 Mini-Game Type Definitions
+- [x] Add mini-game types
+  - File: `src/types/index.ts` (extend)
+  - Types:
+    - `MiniGameType`: 'catcher' | 'memory' | 'timing'
+    - `MiniGame`: id, name, countryId, type, icon, description, rewardType, maxReward
+    - `MiniGameResult`: score, maxScore, reward
+  - Depends: none
+
+### 9.1.2 Mini-Game Data
+- [x] Create mini-game definitions
+  - File: `src/data/minigames.ts`
+  - Tests: `src/__tests__/data/minigames.test.ts`
+  - Mini-games (one per country):
+    - France: Croissant Catcher (catcher) - earn food
+    - Germany: Beer Stein Balance (timing) - earn money
+    - Russia: Matryoshka Match (memory) - earn money
+    - China: Dumpling Catch (catcher) - earn food
+    - Japan: Sushi Sort (timing) - earn food
+    - Singapore: Night Market Grab (catcher) - earn money
+    - Australia: Boomerang Catch (timing) - earn money
+    - Brazil: Carnival Rhythm (timing) - earn money
+    - Canada: Maple Syrup Pour (timing) - earn food
+    - USA: Hot Dog Stack (catcher) - earn food
+  - Export: `minigames: MiniGame[]`, `getMiniGameByCountryId(countryId): MiniGame`
+  - Depends: 9.1.1
+
+---
+
+## 9.2 Mini-Game Logic
+
+### 9.2.1 Mini-Game Reward Calculation
+- [x] Implement reward calculation
+  - File: `src/logic/minigames.ts`
+  - Tests: `src/__tests__/logic/minigames.test.ts`
+  - Functions:
+    - `calculateMiniGameReward(score, maxScore, maxReward): number`
+    - `getMiniGameRewardType(miniGame): 'food' | 'money'`
+  - Depends: 9.1.2
+
+---
+
+## 9.3 Mini-Game Store
+
+### 9.3.1 Mini-Game State
+- [x] Add mini-game state to store
+  - File: `src/stores/gameStore.ts` (extend)
+  - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
+  - State: currentMiniGame, lastMiniGameResult
+  - Actions: startMiniGame(countryId), completeMiniGame(result), skipMiniGame()
+  - completeMiniGame applies reward to resources
+  - Depends: 9.2.1
+
+---
+
+## 9.4 Mini-Game UI Components
+
+### 9.4.1 CatcherGame Component
+- [x] Create catcher-style mini-game
+  - File: `src/components/minigames/CatcherGame.tsx`
+  - Tests: `src/__tests__/components/CatcherGame.test.tsx`
+  - Props: miniGame, onComplete, onSkip
+  - Gameplay:
+    - Items fall from top of screen
+    - Player moves catcher left/right with keyboard or touch
+    - Catch items to score points (15 second duration)
+    - Good items = +1 point, bad items = -1 point
+  - Returns score on completion
+  - Depends: 9.1.2
+
+### 9.4.2 TimingGame Component
+- [x] Create timing-based mini-game
+  - File: `src/components/minigames/TimingGame.tsx`
+  - Tests: `src/__tests__/components/TimingGame.test.tsx`
+  - Props: miniGame, onComplete, onSkip
+  - Gameplay:
+    - Moving indicator oscillates on a bar
+    - Player clicks/taps to stop in target zone
+    - Closer to center = more points (5 rounds)
+    - Score based on accuracy
+  - Returns score on completion
+  - Depends: 9.1.2
+
+### 9.4.3 MemoryGame Component
+- [x] Create memory match mini-game
+  - File: `src/components/minigames/MemoryGame.tsx`
+  - Tests: `src/__tests__/components/MemoryGame.test.tsx`
+  - Props: miniGame, onComplete, onSkip
+  - Gameplay:
+    - 4x3 grid of face-down cards (6 pairs)
+    - Click to reveal cards, find matching pairs
+    - Score = pairs found within 30 seconds
+  - Returns score on completion
+  - Depends: 9.1.2
+
+### 9.4.4 MiniGameModal Component
+- [x] Create mini-game container modal
+  - File: `src/components/game/MiniGameModal.tsx`
+  - Tests: `src/__tests__/components/MiniGameModal.test.tsx`
+  - Props: miniGame, onComplete, onSkip
+  - Shows: Mini-game title, description, reward info
+  - Renders appropriate game component based on miniGame.type
+  - Shows results after completion with "Collect Reward" button
+  - Depends: 9.4.1, 9.4.2, 9.4.3
+
+---
+
+## 9.5 Station Integration
+
+### 9.5.1 Station Mini-Game Integration
+- [x] Add mini-game option to station arrival
+  - File: `src/components/game/StationModal.tsx` (update)
+  - Tests: `src/__tests__/components/StationModal.test.tsx` (update)
+  - After rewards: show "Play Mini-Game?" button
+  - Opens MiniGameModal for current country's mini-game
+  - Depends: 9.4.4, 6.2.1
+
+### 9.5.2 Dashboard Mini-Game Flow
+- [x] Integrate mini-game flow into dashboard
+  - File: `src/components/screens/DashboardScreen.tsx` (update)
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx` (update)
+  - When mini-game started from station, show MiniGameModal
+  - Apply rewards after completion
+  - Depends: 9.5.1, 9.3.1
+
+---
+
+## 9.6 Phase 9 Verification
+
+### 9.6.1 Mini-Game Integration Test
+- [x] Test complete mini-game flow
+  - File: `src/__tests__/integration/phase9-minigames.test.tsx`
+  - Test: Arriving at station shows mini-game option
+  - Test: Playing mini-game awards resources based on score
+  - Test: Skipping mini-game returns to station
+  - Depends: 9.5.2
+
+### 9.6.2 Manual Mini-Game Test
+- [x] Test mini-games in gameplay
+  - Run: `npm run dev`
+  - Test: Play each mini-game type
+  - Test: Verify rewards applied correctly
+  - Test: Skip works correctly
+  - Depends: 9.6.1
+
+---
+
+# Pre-Phase 10: Game Balance Fix
+
+> **Goal:** Double country distances so train moves slower.
+> **Problem:** Train moves too quickly between countries.
+> **Solution:** Change all `distanceRequired: 10` to `distanceRequired: 20`
+
+---
+
+## Balance Fix
+
+### Country Distance Update
+- [x] Update country distances
+  - File: `src/data/countries.ts`
+  - Tests: `src/__tests__/data/countries.test.ts` (update expected values)
+  - Change: All 10 countries from `distanceRequired: 10` to `20`
+  - Depends: none
 
 ---
 
 # Phase 10: Mystery Cargo (P3)
 
 > **Goal:** Discover mystery crates during travel with collectible rewards.
+> **Flow:** Travel -> random chance to find crate -> stored -> opens at next station -> reveals reward
 > **Testable Outcome:** Random chance to find crate, opens at next station, reveals reward.
 
-(Tasks would follow similar pattern)
+---
+
+## 10.1 Cargo Data & Types
+
+### 10.1.1 Cargo Type Definitions
+- [x] Add cargo types to `src/types/index.ts`
+  - `CargoRarity`: 'common' | 'rare' | 'legendary'
+  - `CargoItem`: id, name, icon, rarity, rewardType, rewardAmount, description
+  - `CargoDiscovery`: item, foundAtCountry, turnFound
+  - Depends: none
+
+### 10.1.2 Cargo Data
+- [x] Create cargo definitions
+  - File: `src/data/cargo.ts`
+  - Tests: `src/__tests__/data/cargo.test.ts`
+  - Items (12 total, 4 per rarity):
+    - Common: Old Toolbox (+20 money), Rusty Parts (+10 fuel), Dried Rations (+15 food), Water Canteen (+20 water)
+    - Rare: Antique Clock (+75 money), Fuel Reserves (+40 fuel), Preserved Feast (+50 food), Spring Water (+50 water)
+    - Legendary: Golden Artifact (+200 money), Engine Core (+100 fuel), Royal Banquet (+100 food), Crystal Spring (+100 water)
+  - Export: `cargoItems: CargoItem[]`, `getCargoByRarity(rarity): CargoItem[]`
+  - Depends: 10.1.1
+
+---
+
+## 10.2 Cargo Logic
+
+### 10.2.1 Cargo Discovery Logic
+- [x] Implement cargo discovery
+  - File: `src/logic/cargo.ts`
+  - Tests: `src/__tests__/logic/cargo.test.ts`
+  - Functions:
+    - `shouldDiscoverCargo(): boolean` (~15% chance per turn)
+    - `selectRandomCargo(): CargoItem` (weighted by rarity: 70% common, 25% rare, 5% legendary)
+  - Depends: 10.1.2
+
+### 10.2.2 Cargo Reward Logic
+- [x] Implement cargo opening rewards
+  - File: `src/logic/cargo.ts` (extend)
+  - Tests: `src/__tests__/logic/cargo.test.ts` (extend)
+  - Functions:
+    - `openCargo(item: CargoItem): CargoReward`
+    - `applyCargoReward(resources, reward): Resources`
+  - Depends: 10.2.1
+
+### 10.2.3 Integrate Cargo into Turn
+- [x] Add cargo discovery to turn processing
+  - File: `src/logic/turn.ts` (update)
+  - Tests: `src/__tests__/logic/turn.test.ts` (update)
+  - After movement: check `shouldDiscoverCargo()`
+  - Add `cargoDiscovered?: CargoItem` to TurnResult
+  - Depends: 10.2.1
+
+---
+
+## 10.3 Cargo Store
+
+### 10.3.1 Cargo State
+- [x] Add cargo state to store
+  - File: `src/stores/gameStore.ts` (extend)
+  - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
+  - State: `carriedCargo: CargoDiscovery[]`, `pendingCargoOpen: CargoItem | null`
+  - Actions: `addCargo(item)`, `openCargoAtStation()`, `clearPendingCargo()`
+  - Initialize `carriedCargo: []` in `initializeGame()`
+  - Depends: 10.2.2
+
+---
+
+## 10.4 Cargo UI
+
+### 10.4.1 CargoDiscoveryModal Component
+- [x] Create cargo discovery notification
+  - File: `src/components/game/CargoDiscoveryModal.tsx`
+  - Tests: `src/__tests__/components/CargoDiscoveryModal.test.tsx`
+  - Props: cargoItem, onContinue
+  - Shows: "You found a crate!" + item icon + name + rarity
+  - Note: "Will open at next station"
+  - Depends: 10.1.2
+
+### 10.4.2 CargoOpenModal Component
+- [x] Create cargo opening modal
+  - File: `src/components/game/CargoOpenModal.tsx`
+  - Tests: `src/__tests__/components/CargoOpenModal.test.tsx`
+  - Props: cargoItem, reward, onContinue
+  - Shows: Opening animation, item revealed, reward granted
+  - Depends: 10.1.2
+
+### 10.4.3 CargoInventory Component
+- [x] Create cargo inventory display
+  - File: `src/components/game/CargoInventory.tsx`
+  - Tests: `src/__tests__/components/CargoInventory.test.tsx`
+  - Shows: List of carried cargo items (small icons in dashboard)
+  - Depends: 10.3.1
+
+### 10.4.4 Dashboard Cargo Integration
+- [x] Integrate cargo into dashboard flow
+  - File: `src/components/screens/DashboardScreen.tsx` (update)
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx` (update)
+  - After turn: if cargoDiscovered, show CargoDiscoveryModal
+  - At station: if carriedCargo, show CargoOpenModal before StationModal
+  - Show CargoInventory in dashboard UI
+  - Depends: 10.4.1, 10.4.2, 10.4.3
+
+---
+
+## 10.5 Phase 10 Verification
+
+### 10.5.1 Cargo Integration Test
+- [x] Test complete cargo flow
+  - File: `src/__tests__/integration/phase10-cargo.test.tsx`
+  - Test: Cargo discovered during turn
+  - Test: Cargo stored until station
+  - Test: Cargo opens at station with reward
+  - Test: Multiple cargo items can be carried
+  - Depends: 10.4.4
 
 ---
 
@@ -988,8 +1268,242 @@
 
 > **Goal:** Educational quizzes at stations for bonus rewards.
 > **Testable Outcome:** Quiz modal with 3 questions, correct answers earn bonus money.
+> **Builds on:** Phase 9 (Mini-Games) - similar modal pattern and station integration
 
-(Tasks would follow similar pattern)
+---
+
+## 11.1 Quiz Data & Types
+
+### 11.1.1 Quiz Type Definitions
+- [x] Add quiz types to `src/types/index.ts`
+  - `QuizQuestion`: id, questionText, options: string[], correctAnswer, funFact
+  - `CountryQuiz`: id, countryId, name, questions: QuizQuestion[]
+  - `QuizResult`: score, totalQuestions, reward, rating
+  - Depends: none
+
+### 11.1.2 Quiz Data
+- [x] Create quiz data
+  - File: `src/data/quizzes.ts`
+  - Tests: `src/__tests__/data/quizzes.test.ts`
+  - Data: 10 countries × 3 questions each
+  - Export: `quizzes: CountryQuiz[]`, `getQuizByCountryId(countryId): CountryQuiz | undefined`
+  - Depends: 11.1.1
+
+---
+
+## 11.2 Quiz Logic
+
+### 11.2.1 Quiz Reward Calculation
+- [x] Implement quiz logic
+  - File: `src/logic/quizzes.ts`
+  - Tests: `src/__tests__/logic/quizzes.test.ts`
+  - Functions:
+    - `calculateQuizReward(correctCount: number): number` (3/3=$30, 2/3=$20, 1/3=$10, 0/3=$5)
+    - `getQuizRating(correctCount: number): string` (Quiz Master, Great Job, Good Try, Keep Learning)
+  - Depends: 11.1.1
+
+---
+
+## 11.3 Quiz Store
+
+### 11.3.1 Quiz State
+- [x] Add quiz state to store
+  - File: `src/stores/gameStore.ts` (extend)
+  - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
+  - State: currentQuiz, quizAnswers, currentQuestionIndex, lastQuizResult
+  - Actions: startQuiz(countryId), answerQuestion(questionId, answer), nextQuestion(), completeQuiz(), skipQuiz()
+  - Initialize in `initializeGame()`
+  - Depends: 11.2.1
+
+---
+
+## 11.4 Quiz UI Components
+
+### 11.4.1 QuizQuestion Component
+- [x] Create quiz question component
+  - File: `src/components/game/QuizQuestion.tsx`
+  - Tests: `src/__tests__/components/QuizQuestion.test.tsx`
+  - Props: question, selectedAnswer, onSelectAnswer, showResult
+  - Shows: Question text, 4 answer options, selected state, correct/incorrect feedback, fun fact
+  - Depends: 11.1.1
+
+### 11.4.2 QuizResult Component
+- [x] Create quiz result component
+  - File: `src/components/game/QuizResult.tsx`
+  - Tests: `src/__tests__/components/QuizResult.test.tsx`
+  - Props: result, countryName, onContinue
+  - Shows: Rating with emoji, score, reward, continue button
+  - Depends: 11.1.1
+
+### 11.4.3 QuizModal Component
+- [x] Create quiz modal component
+  - File: `src/components/game/QuizModal.tsx`
+  - Tests: `src/__tests__/components/QuizModal.test.tsx`
+  - Props: quiz, onComplete, onSkip
+  - State: phase ('playing' | 'feedback' | 'results')
+  - Shows: Header, QuizQuestion, feedback with fun fact, QuizResult, skip button
+  - Depends: 11.4.1, 11.4.2
+
+---
+
+## 11.5 Station Integration
+
+### 11.5.1 Station Quiz Button
+- [x] Add quiz button to station modal
+  - File: `src/components/game/StationModal.tsx` (update)
+  - Tests: `src/__tests__/components/StationModal.test.tsx` (update)
+  - Add optional `onTakeQuiz?: () => void` prop
+  - Show "Take Quiz?" button after mini-game option
+  - Depends: 11.4.3
+
+### 11.5.2 Dashboard Quiz Flow
+- [x] Integrate quiz flow into dashboard
+  - File: `src/components/screens/DashboardScreen.tsx` (update)
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx` (update)
+  - Show quiz modal when currentQuiz is set
+  - Wire startQuiz() to StationModal's onTakeQuiz
+  - Handle quiz completion
+  - Depends: 11.5.1, 11.3.1
+
+---
+
+## 11.6 Phase 11 Verification
+
+### 11.6.1 Quiz Integration Test
+- [x] Test complete quiz flow
+  - File: `src/__tests__/integration/phase11-quiz.test.tsx`
+  - Test: All 10 countries have quizzes with 3 questions
+  - Test: Starting quiz loads correct country quiz
+  - Test: Answering questions records answers
+  - Test: Completing quiz calculates correct reward
+  - Test: Reward applied to money resource
+  - Test: Skip returns without reward
+  - Depends: 11.5.2
+
+### 11.6.2 Manual Quiz Test
+- [x] Test quiz in gameplay
+  - Run: `npm run dev`
+  - Test: Arrive at station, click "Take Quiz?"
+  - Test: Answer 3 questions, see feedback
+  - Test: See final result with reward
+  - Test: Verify money increased
+  - Depends: 11.6.1
+
+---
+
+# UI Improvements (Post Phase 11)
+
+> **Goal:** Improve game UI and fix bugs.
+
+---
+
+## UI.1 Location Indicator
+
+### UI.1.1 LocationIndicator Component
+- [x] Create location indicator showing current/next country
+  - File: `src/components/game/LocationIndicator.tsx`
+  - Tests: `src/__tests__/components/LocationIndicator.test.tsx`
+  - Shows current country icon + name
+  - If not at USA, shows arrow and next country
+  - At USA, shows "Final Destination!" indicator
+  - Depends: countries data
+
+### UI.1.2 Dashboard LocationIndicator Integration
+- [x] Add LocationIndicator to DashboardScreen
+  - File: `src/components/screens/DashboardScreen.tsx` (update)
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx` (update)
+  - Insert after "Journey Progress" header, before JourneyTrack
+  - Depends: UI.1.1
+
+---
+
+## UI.2 Dice Animation Duration
+
+### UI.2.1 Reduce Dice Animation
+- [x] Change dice animation from 1.5s to 1s
+  - File: `src/components/screens/DashboardScreen.tsx` (line 277)
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx` (line 583)
+  - Tests: `src/__tests__/integration/phase7-events.test.tsx` (line 148)
+  - Change 1500 to 1000, update test timers from 1600 to 1100
+  - Depends: none
+
+---
+
+## UI.3 Store Access Bug Fix
+
+### UI.3.1 Fix Store After Mini-Game
+- [x] Show station modal after mini-game completion
+  - File: `src/components/screens/DashboardScreen.tsx` (line 237-240)
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx`
+  - Add `setShowStationModal(true)` in handleMiniGameComplete
+  - Depends: none
+
+---
+
+# Feature: Security Crew Effect + Combined Stats Display
+
+> **Goal:** Fix security crew role (currently does nothing) and show captain/train stats in dashboard.
+
+---
+
+## SEC.1 Security Crew Effect
+
+### SEC.1.1 Security Penalty Reduction Constant
+- [x] Add SECURITY_PENALTY_REDUCTION constant
+  - File: `src/data/constants.ts`
+  - Tests: `src/__tests__/data/constants.test.ts` (extend)
+  - Add: `export const SECURITY_PENALTY_REDUCTION = 0.15;` (15% per security crew)
+  - Depends: none
+
+### SEC.1.2 Calculate Security Bonus Function
+- [x] Add calculateSecurityBonus function to crew.ts
+  - File: `src/logic/crew.ts`
+  - Tests: `src/__tests__/logic/crew.test.ts` (extend)
+  - Function: `calculateSecurityBonus(securityCount): number`
+  - Returns multiplier: 0 security = 1.0, 2 security = 0.70, 4 security = 0.40
+  - Depends: SEC.1.1
+
+### SEC.1.3 Apply Event Penalties in Store
+- [x] Update resolveCurrentEvent to accept EventResult and apply penalties
+  - File: `src/stores/gameStore.ts`
+  - Tests: `src/__tests__/stores/gameStore.test.ts` (extend)
+  - resolveCurrentEvent now takes EventResult parameter
+  - Apply resource/progress penalties with security reduction
+  - Depends: SEC.1.2
+
+### SEC.1.4 Dashboard Passes EventResult
+- [x] Update DashboardScreen to pass eventResult to resolveCurrentEvent
+  - File: `src/components/screens/DashboardScreen.tsx`
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx` (extend)
+  - Change: `resolveCurrentEvent()` → `resolveCurrentEvent(eventResult)`
+  - Depends: SEC.1.3
+
+---
+
+## STATS.1 Combined Stats Display
+
+### STATS.1.1 CaptainStats Component
+- [x] Create CaptainStats component
+  - File: `src/components/game/CaptainStats.tsx`
+  - Tests: `src/__tests__/components/CaptainStats.test.tsx`
+  - Props: stats: CaptainStats, compact: boolean
+  - Shows: ENG ████░░ | FOOD ██░░░░ | SEC ███░░░
+  - Depends: StatBar component
+
+### STATS.1.2 TrainStats Component
+- [x] Create TrainStats component
+  - File: `src/components/game/TrainStats.tsx`
+  - Tests: `src/__tests__/components/TrainStats.test.tsx`
+  - Props: stats: TrainStats, compact: boolean
+  - Shows: SPD █████░ | REL ███░░░ | PWR ████░░
+  - Depends: StatBar component
+
+### STATS.1.3 Dashboard Stats Integration
+- [x] Update DashboardScreen selection header to show stats
+  - File: `src/components/screens/DashboardScreen.tsx`
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx` (extend)
+  - Show CaptainStats and TrainStats under captain/train names
+  - Depends: STATS.1.1, STATS.1.2
 
 ---
 

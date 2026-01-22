@@ -18,18 +18,18 @@ export function CountryMarker({ country, status }: CountryMarkerProps) {
     alignItems: 'center',
     gap: '0.25rem',
     padding: '0.5rem',
-    minWidth: '60px',
+    minWidth: '180px',
     position: 'relative',
   }
 
   const iconStyle: React.CSSProperties = {
-    fontSize: '1.5rem',
+    fontSize: '4.5rem',
     opacity: isVisited ? 0.5 : 1,
     filter: isVisited ? 'grayscale(50%)' : 'none',
   }
 
   const nameStyle: React.CSSProperties = {
-    fontSize: '0.625rem',
+    fontSize: '1.875rem',
     fontWeight: isCurrent ? 'bold' : 'normal',
     color: isCurrent ? 'var(--color-gold, #F7B538)' : isVisited ? 'var(--color-text-secondary, #b8b8d0)' : 'var(--color-text, #ffffff)',
     textAlign: 'center',
@@ -40,13 +40,13 @@ export function CountryMarker({ country, status }: CountryMarkerProps) {
     position: 'absolute',
     top: '0',
     right: '0',
-    fontSize: '0.75rem',
+    fontSize: '2.25rem',
     color: 'var(--color-success, #3E8914)',
   }
 
   const currentIndicatorStyle: React.CSSProperties = {
-    width: '8px',
-    height: '8px',
+    width: '24px',
+    height: '24px',
     borderRadius: '50%',
     backgroundColor: 'var(--color-gold, #F7B538)',
     marginTop: '0.25rem',

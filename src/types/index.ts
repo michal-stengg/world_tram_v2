@@ -88,3 +88,83 @@ export interface Cart {
   effectValue: number;
   description: string;
 }
+
+// Mini-game types - different gameplay mechanics
+export type MiniGameType = 'catcher' | 'memory' | 'timing';
+
+// Mini-game reward types - what resource the player earns
+export type MiniGameRewardType = 'food' | 'money';
+
+// Mini-game definition
+export interface MiniGame {
+  id: string;
+  name: string;
+  countryId: string;       // references Country.id
+  type: MiniGameType;
+  icon: string;            // emoji representing the mini-game
+  description: string;
+  rewardType: MiniGameRewardType;
+  maxReward: number;
+}
+
+// Mini-game result after completion
+export interface MiniGameResult {
+  score: number;
+  maxScore: number;
+  reward: number;
+}
+
+// Cargo rarity levels
+export type CargoRarity = 'common' | 'rare' | 'legendary';
+
+// Cargo reward types - what resource the cargo provides
+export type CargoRewardType = 'money' | 'fuel' | 'food' | 'water';
+
+// Cargo item definition
+export interface CargoItem {
+  id: string;
+  name: string;
+  icon: string;
+  rarity: CargoRarity;
+  rewardType: CargoRewardType;
+  rewardAmount: number;
+  description: string;
+}
+
+// Represents a cargo item that was discovered
+export interface CargoDiscovery {
+  item: CargoItem;
+  foundAtCountry: string;  // country id where it was found
+  turnFound: number;
+}
+
+// Result of opening a cargo item
+export interface CargoReward {
+  rewardType: CargoRewardType;
+  amount: number;
+}
+
+// Quiz question definition
+export interface QuizQuestion {
+  id: string;
+  questionText: string;
+  options: string[];          // array of 4 answer choices
+  correctAnswer: string;      // the correct answer text
+  funFact: string;            // interesting fact shown after answering
+}
+
+// Country quiz definition
+export interface CountryQuiz {
+  id: string;
+  countryId: string;          // references Country.id
+  name: string;               // country name for display
+  questions: QuizQuestion[];  // array of 3 questions
+}
+
+// Quiz result after completion
+export interface QuizResult {
+  score: number;              // 0-3
+  totalQuestions: number;     // always 3
+  reward: number;             // money earned
+  rating: string;             // e.g., "Quiz Master!", "Great Job!"
+}

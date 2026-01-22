@@ -62,6 +62,20 @@ vi.mock('../../logic/dice', () => ({
   rollDice: () => mockConfig.diceRoll,
 }))
 
+// Mock cargo discovery to prevent random cargo from interfering with event tests
+vi.mock('../../logic/cargo', () => ({
+  shouldDiscoverCargo: () => false,
+  selectRandomCargo: () => null,
+  openCargo: (item: { rewardType: string; rewardAmount: number }) => ({
+    rewardType: item.rewardType,
+    amount: item.rewardAmount,
+  }),
+  applyCargoReward: (resources: Record<string, number>, reward: { rewardType: string; amount: number }) => ({
+    ...resources,
+    [reward.rewardType]: (resources[reward.rewardType] || 0) + reward.amount,
+  }),
+}))
+
 // Track calls to replenishHand for testing
 let replenishHandCalls: BonusCard[][] = []
 
@@ -131,7 +145,7 @@ describe('Phase 7: Events Integration', () => {
   // Helper to advance timers past dice rolling animation
   const advanceDiceRollingAnimation = () => {
     act(() => {
-      vi.advanceTimersByTime(1600) // 1500ms animation + buffer
+      vi.advanceTimersByTime(1100) // 1000ms animation + buffer
     })
   }
 

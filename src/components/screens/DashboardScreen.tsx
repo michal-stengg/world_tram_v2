@@ -1,17 +1,26 @@
 import { useState, useEffect } from 'react'
 import { ResourceBar } from '../game/ResourceBar'
 import { JourneyTrack } from '../game/JourneyTrack'
+import { LocationIndicator } from '../game/LocationIndicator'
 import { CrewPanel } from '../game/CrewPanel'
 import { TurnResultDisplay } from '../game/TurnResultDisplay'
 import { StationModal } from '../game/StationModal'
 import { EventModal } from '../game/EventModal'
 import { CartShop } from '../game/CartShop'
 import { GoButton } from '../game/GoButton'
+import { CargoDiscoveryModal } from '../game/CargoDiscoveryModal'
+import { CargoOpenModal } from '../game/CargoOpenModal'
+import { CargoInventory } from '../game/CargoInventory'
+import { MiniGameModal } from '../game/MiniGameModal'
+import { QuizModal } from '../game/QuizModal'
+import { CaptainStats } from '../game/CaptainStats'
+import { TrainStats } from '../game/TrainStats'
 import { useGameStore } from '../../stores/gameStore'
 import { countries } from '../../data/countries'
 import { resolveEvent } from '../../logic/events'
 import { rollDice } from '../../logic/dice'
 import type { EventResult } from '../../logic/events'
+import type { CargoItem, CargoReward } from '../../types'
 
 const containerStyle: React.CSSProperties = {
   display: 'flex',
@@ -38,6 +47,12 @@ const selectionItemStyle: React.CSSProperties = {
   backgroundColor: 'rgba(0, 0, 0, 0.2)',
   borderRadius: '4px',
   fontSize: '1rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '0.25rem',
+}
+
+const selectionNameStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.5rem',
@@ -104,6 +119,25 @@ export function DashboardScreen() {
   const ownedCarts = useGameStore((state) => state.ownedCarts)
   const purchaseCart = useGameStore((state) => state.purchaseCart)
 
+  // Cargo related state
+  const carriedCargo = useGameStore((state) => state.carriedCargo)
+  const pendingCargoOpen = useGameStore((state) => state.pendingCargoOpen)
+  const addCargo = useGameStore((state) => state.addCargo)
+  const openCargoAtStation = useGameStore((state) => state.openCargoAtStation)
+  const clearPendingCargo = useGameStore((state) => state.clearPendingCargo)
+
+  // Mini-game related state
+  const startMiniGame = useGameStore((state) => state.startMiniGame)
+  const completeMiniGame = useGameStore((state) => state.completeMiniGame)
+  const skipMiniGame = useGameStore((state) => state.skipMiniGame)
+  const currentMiniGame = useGameStore((state) => state.currentMiniGame)
+
+  // Quiz related state
+  const currentQuiz = useGameStore((state) => state.currentQuiz)
+  const startQuiz = useGameStore((state) => state.startQuiz)
+  const completeQuiz = useGameStore((state) => state.completeQuiz)
+  const skipQuiz = useGameStore((state) => state.skipQuiz)
+
   // Track whether we're showing the station modal (before showing turn result)
   const [showStationModal, setShowStationModal] = useState(false)
 
@@ -117,6 +151,14 @@ export function DashboardScreen() {
   const [isRolling, setIsRolling] = useState(false)
   const [diceValue, setDiceValue] = useState<number | undefined>(undefined)
 
+  // Cargo discovery state
+  const [showCargoDiscovery, setShowCargoDiscovery] = useState(false)
+  const [discoveredCargo, setDiscoveredCargo] = useState<CargoItem | null>(null)
+  const [currentCargoReward, setCurrentCargoReward] = useState<CargoReward | null>(null)
+
+  // Quiz state
+  const [showQuizModal, setShowQuizModal] = useState(false)
+
   // When a new turn result comes in with an event, set it in the store
   useEffect(() => {
     if (lastTurnResult?.eventTriggered && lastTurnResult.event) {
@@ -127,16 +169,45 @@ export function DashboardScreen() {
     }
   }, [lastTurnResult, setCurrentEvent])
 
-  // When a new turn result comes in with a stationReward and no event pending, show the station modal
+  // When turn result has cargo discovered, show the modal (after event is resolved)
   useEffect(() => {
-    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing' && !currentEvent) {
-      // Show station modal after event is resolved - intentional state update in effect
+    if (lastTurnResult?.cargoDiscovered && !currentEvent) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowStationModal(true)
-    } else if (!currentEvent) {
-      setShowStationModal(false)
+      setDiscoveredCargo(lastTurnResult.cargoDiscovered)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowCargoDiscovery(true)
     }
   }, [lastTurnResult, currentEvent])
+
+  // When a new turn result comes in with a stationReward and no event pending, show the station modal
+  // But wait for cargo discovery modal to be dismissed first
+  useEffect(() => {
+    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing' && !currentEvent && !showCargoDiscovery) {
+      // Show station modal after event and cargo discovery are resolved - intentional state update in effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowStationModal(true)
+    } else if (!currentEvent && !showCargoDiscovery) {
+      setShowStationModal(false)
+    }
+  }, [lastTurnResult, currentEvent, showCargoDiscovery])
+
+  // When arriving at station with cargo, open cargo before showing station modal
+  useEffect(() => {
+    if (
+      lastTurnResult?.stationReward &&
+      !currentEvent &&
+      !showCargoDiscovery &&
+      carriedCargo.length > 0 &&
+      !pendingCargoOpen
+    ) {
+      // Open first cargo
+      const reward = openCargoAtStation()
+      if (reward) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCurrentCargoReward(reward)
+      }
+    }
+  }, [lastTurnResult, currentEvent, showCargoDiscovery, carriedCargo.length, pendingCargoOpen, openCargoAtStation])
 
   const handleDismissStationModal = () => {
     setShowStationModal(false)
@@ -158,6 +229,58 @@ export function DashboardScreen() {
 
   const handleDismissTurnResult = () => {
     clearTurnResult()
+  }
+
+  const handleCargoDiscoveryContinue = () => {
+    if (discoveredCargo) {
+      // Add cargo to inventory
+      const currentCountry = countries[currentCountryIndex]
+      addCargo(discoveredCargo, currentCountry.id, lastTurnResult?.newTurnCount || 0)
+    }
+    setShowCargoDiscovery(false)
+    setDiscoveredCargo(null)
+  }
+
+  const handleCargoOpenContinue = () => {
+    clearPendingCargo()
+    setCurrentCargoReward(null)
+    // The useEffect will try to open next cargo if any are remaining
+  }
+
+  const handlePlayMiniGame = () => {
+    const currentCountry = countries[currentCountryIndex]
+    startMiniGame(currentCountry.id)
+    setShowStationModal(false)
+  }
+
+  const handleMiniGameComplete = (score: number, maxScore: number) => {
+    completeMiniGame(score, maxScore)
+    setShowStationModal(true)  // Return to station modal to allow shop access
+  }
+
+  const handleMiniGameSkip = () => {
+    skipMiniGame()
+    // Return to station modal
+    setShowStationModal(true)
+  }
+
+  const handleTakeQuiz = () => {
+    const currentCountry = countries[currentCountryIndex]
+    startQuiz(currentCountry.id)
+    setShowQuizModal(true)
+    setShowStationModal(false)  // Hide station modal while taking quiz
+  }
+
+  const handleQuizComplete = () => {
+    completeQuiz()  // This applies the reward in the store
+    setShowQuizModal(false)
+    setShowStationModal(true)  // Return to station modal
+  }
+
+  const handleQuizSkip = () => {
+    skipQuiz()
+    setShowQuizModal(false)
+    setShowStationModal(true)  // Return to station modal
   }
 
   const handleSelectCard = (cardId: string) => {
@@ -189,12 +312,12 @@ export function DashboardScreen() {
 
       setEventResult(result)
       setIsRolling(false)
-    }, 1500)
+    }, 1000)
   }
 
   const handleEventContinue = () => {
     // Clear the event and resolve it (removes played cards, replenishes hand)
-    resolveCurrentEvent()
+    resolveCurrentEvent(eventResult)
     setEventResult(undefined)
     setDiceValue(undefined)
 
@@ -211,8 +334,11 @@ export function DashboardScreen() {
         <div style={selectionItemStyle} data-testid="selected-captain">
           {selectedCaptain ? (
             <>
-              <span role="img" aria-label="Captain portrait">{selectedCaptain.portrait}</span>
-              <span>Captain: {selectedCaptain.name}</span>
+              <div style={selectionNameStyle}>
+                <span role="img" aria-label="Captain portrait">{selectedCaptain.portrait}</span>
+                <span>Captain: {selectedCaptain.name}</span>
+              </div>
+              <CaptainStats stats={selectedCaptain.stats} compact />
             </>
           ) : (
             <span>Captain: None</span>
@@ -221,8 +347,11 @@ export function DashboardScreen() {
         <div style={selectionItemStyle} data-testid="selected-train">
           {selectedTrain ? (
             <>
-              <span role="img" aria-label="Train sprite">{selectedTrain.sprite}</span>
-              <span>Train: {selectedTrain.name}</span>
+              <div style={selectionNameStyle}>
+                <span role="img" aria-label="Train sprite">{selectedTrain.sprite}</span>
+                <span>Train: {selectedTrain.name}</span>
+              </div>
+              <TrainStats stats={selectedTrain.stats} compact />
             </>
           ) : (
             <span>Train: None</span>
@@ -238,12 +367,14 @@ export function DashboardScreen() {
       {/* Center Zone - Journey Track */}
       <div style={journeyZoneStyle} data-testid="journey-zone">
         <h2 style={journeyTitleStyle}>Journey Progress</h2>
+        <LocationIndicator />
         <JourneyTrack />
       </div>
 
-      {/* Bottom Zone - Crew + GO Button */}
+      {/* Bottom Zone - Crew + GO Button + Cargo Inventory */}
       <div style={bottomZoneStyle} data-testid="crew-zone">
         <CrewPanel />
+        <CargoInventory carriedCargo={carriedCargo} />
         <div style={goButtonContainerStyle}>
           <GoButton onGo={executeTurn} />
         </div>
@@ -264,13 +395,50 @@ export function DashboardScreen() {
         />
       )}
 
-      {/* Station Modal - shows when arriving at a new country (after event is resolved) */}
-      {!currentEvent && showStationModal && lastTurnResult?.stationReward && (
+      {/* Cargo Discovery Modal - shows when cargo is found during travel (after event resolved) */}
+      {showCargoDiscovery && discoveredCargo && (
+        <CargoDiscoveryModal
+          cargoItem={discoveredCargo}
+          onContinue={handleCargoDiscoveryContinue}
+        />
+      )}
+
+      {/* Cargo Open Modal - shows at station when player has cargo (before station modal) */}
+      {pendingCargoOpen && currentCargoReward && (
+        <CargoOpenModal
+          cargoItem={pendingCargoOpen}
+          reward={currentCargoReward}
+          onContinue={handleCargoOpenContinue}
+        />
+      )}
+
+      {/* Station Modal - shows when arriving at a new country (after event and cargo opening are resolved) */}
+      {!currentEvent && !showCargoDiscovery && !pendingCargoOpen && showStationModal && lastTurnResult?.stationReward && !currentMiniGame && !currentQuiz && (
         <StationModal
           country={countries[currentCountryIndex]}
           reward={lastTurnResult.stationReward}
           onContinue={handleDismissStationModal}
           onVisitShop={handleVisitShop}
+          onPlayMiniGame={handlePlayMiniGame}
+          onTakeQuiz={handleTakeQuiz}
+        />
+      )}
+
+      {/* Mini-Game Modal - shows when playing mini-game from station */}
+      {currentMiniGame && (
+        <MiniGameModal
+          miniGame={currentMiniGame}
+          onComplete={handleMiniGameComplete}
+          onSkip={handleMiniGameSkip}
+        />
+      )}
+
+      {/* Quiz Modal - shows when taking quiz from station */}
+      {currentQuiz && showQuizModal && (
+        <QuizModal
+          quiz={currentQuiz}
+          onComplete={handleQuizComplete}
+          onSkip={handleQuizSkip}
         />
       )}
 
@@ -285,7 +453,7 @@ export function DashboardScreen() {
       )}
 
       {/* Turn Result Modal - shows after station modal is dismissed (or immediately if no station) */}
-      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !showCartShop && !currentEvent && (
+      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !showCartShop && !currentEvent && !showCargoDiscovery && !pendingCargoOpen && !currentMiniGame && !showQuizModal && (
         <TurnResultDisplay
           result={lastTurnResult}
           onDismiss={handleDismissTurnResult}

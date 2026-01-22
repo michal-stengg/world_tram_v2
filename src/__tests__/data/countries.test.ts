@@ -66,16 +66,16 @@ describe('countries data', () => {
 
     it('should have correct data for each country', () => {
       const countryData: Record<string, Partial<Country>> = {
-        france: { icon: '🗼', landmark: 'Eiffel Tower in Paris', distanceRequired: 10 },
-        germany: { icon: '🏰', landmark: 'Neuschwanstein Castle', distanceRequired: 10 },
-        russia: { icon: '🏛️', landmark: 'Red Square in Moscow', distanceRequired: 10 },
-        china: { icon: '🏯', landmark: 'The Great Wall', distanceRequired: 10 },
-        japan: { icon: '🗻', landmark: 'Mount Fuji', distanceRequired: 10 },
-        singapore: { icon: '🌴', landmark: 'Marina Bay Sands', distanceRequired: 10 },
-        australia: { icon: '🦘', landmark: 'Sydney Opera House', distanceRequired: 10 },
-        brazil: { icon: '🎭', landmark: 'Christ the Redeemer', distanceRequired: 10 },
-        canada: { icon: '🍁', landmark: 'Niagara Falls', distanceRequired: 10 },
-        usa: { icon: '🗽', landmark: 'Statue of Liberty', distanceRequired: 10 },
+        france: { icon: '🗼', landmark: 'Eiffel Tower in Paris', distanceRequired: 20 },
+        germany: { icon: '🏰', landmark: 'Neuschwanstein Castle', distanceRequired: 20 },
+        russia: { icon: '🏛️', landmark: 'Red Square in Moscow', distanceRequired: 20 },
+        china: { icon: '🏯', landmark: 'The Great Wall', distanceRequired: 20 },
+        japan: { icon: '🗻', landmark: 'Mount Fuji', distanceRequired: 20 },
+        singapore: { icon: '🌴', landmark: 'Marina Bay Sands', distanceRequired: 20 },
+        australia: { icon: '🦘', landmark: 'Sydney Opera House', distanceRequired: 20 },
+        brazil: { icon: '🎭', landmark: 'Christ the Redeemer', distanceRequired: 20 },
+        canada: { icon: '🍁', landmark: 'Niagara Falls', distanceRequired: 20 },
+        usa: { icon: '🗽', landmark: 'Statue of Liberty', distanceRequired: 20 },
       };
 
       countries.forEach((country) => {

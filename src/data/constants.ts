@@ -39,3 +39,6 @@ export const ENGINEER_FUEL_SAVINGS = 2;
 
 // Crew
 export const CREW_SIZE = 4;
+
+// Security
+export const SECURITY_PENALTY_REDUCTION = 0.15;  // 15% per security crew

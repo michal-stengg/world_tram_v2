@@ -7,9 +7,11 @@ interface StationModalProps {
   reward: StationReward
   onContinue: () => void
   onVisitShop?: () => void
+  onPlayMiniGame?: () => void
+  onTakeQuiz?: () => void
 }
 
-export function StationModal({ country, reward, onContinue, onVisitShop }: StationModalProps) {
+export function StationModal({ country, reward, onContinue, onVisitShop, onPlayMiniGame, onTakeQuiz }: StationModalProps) {
   const overlayStyle: React.CSSProperties = {
     position: 'fixed',
     top: 0,
@@ -114,6 +116,22 @@ export function StationModal({ country, reward, onContinue, onVisitShop }: Stati
             </span>
           </div>
         </div>
+
+        {onPlayMiniGame && (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <PixelButton onClick={onPlayMiniGame} variant="primary">
+              🎮 Play Mini-Game
+            </PixelButton>
+          </div>
+        )}
+
+        {onTakeQuiz && (
+          <div style={{ marginBottom: '0.75rem' }}>
+            <PixelButton onClick={onTakeQuiz} variant="primary">
+              📝 Take Quiz?
+            </PixelButton>
+          </div>
+        )}
 
         {onVisitShop && (
           <div style={{ marginBottom: '0.75rem' }}>

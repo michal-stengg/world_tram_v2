@@ -39,23 +39,23 @@ export function JourneyTrack() {
 
   const railStyle: React.CSSProperties = {
     position: 'absolute',
-    bottom: '30px',
+    bottom: '90px',
     left: '0',
     right: '0',
-    height: '4px',
+    height: '12px',
     backgroundColor: '#555',
-    borderRadius: '2px',
+    borderRadius: '6px',
   }
 
   const trainStyle: React.CSSProperties = {
     position: 'absolute',
-    bottom: '25px',
-    fontSize: '1.5rem',
+    bottom: '75px',
+    fontSize: '4.5rem',
     zIndex: 10,
   }
 
   // Calculate train position (centered on current country)
-  const trainPosition = `calc(${(currentCountryIndex * 64) + 30}px)`
+  const trainPosition = `calc(${(currentCountryIndex * 192) + 90}px)`
 
   return (
     <div style={containerStyle} data-testid="journey-track">

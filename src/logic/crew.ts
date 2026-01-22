@@ -2,7 +2,7 @@
  * Crew management logic for World Tram
  */
 
-import { ENGINEER_FUEL_SAVINGS } from '../data/constants'
+import { ENGINEER_FUEL_SAVINGS, SECURITY_PENALTY_REDUCTION } from '../data/constants'
 import type { CrewRole } from '../types'
 
 /**
@@ -33,4 +33,17 @@ export function cycleRole(role: CrewRole): CrewRole {
 export function calculateEngineerBonus(engineerCount: number): number {
   const validCount = Math.max(0, engineerCount)
   return ENGINEER_FUEL_SAVINGS * validCount
+}
+
+/**
+ * Calculate penalty multiplier from security crew.
+ * Each security crew reduces penalties by SECURITY_PENALTY_REDUCTION (15%) per turn.
+ * Caps at 4 security crew (60% total reduction, 0.40 multiplier).
+ *
+ * @param securityCount - The number of security crew members
+ * @returns The penalty multiplier (1.0 = full penalty, 0.40 = minimum with 4 security)
+ */
+export function calculateSecurityBonus(securityCount: number): number {
+  const validCount = Math.max(0, Math.min(4, securityCount))
+  return Math.max(0, 1 - SECURITY_PENALTY_REDUCTION * validCount)
 }

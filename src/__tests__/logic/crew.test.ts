@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cycleRole, calculateEngineerBonus } from '../../logic/crew'
+import { cycleRole, calculateEngineerBonus, calculateSecurityBonus } from '../../logic/crew'
 import type { CrewRole } from '../../types'
 
 describe('crew logic', () => {
@@ -71,6 +71,48 @@ describe('crew logic', () => {
 
       expect(bonus2).toBe(bonus1 * 2)
       expect(bonus4).toBe(bonus1 * 4)
+    })
+  })
+
+  describe('calculateSecurityBonus', () => {
+    it('should return 1.0 (full penalty) with 0 security crew', () => {
+      const result = calculateSecurityBonus(0)
+      expect(result).toBe(1.0)
+    })
+
+    it('should return 0.85 with 1 security crew', () => {
+      const result = calculateSecurityBonus(1)
+      expect(result).toBe(0.85)
+    })
+
+    it('should return 0.70 with 2 security crew', () => {
+      const result = calculateSecurityBonus(2)
+      expect(result).toBe(0.70)
+    })
+
+    it('should return 0.55 with 3 security crew', () => {
+      const result = calculateSecurityBonus(3)
+      expect(result).toBe(0.55)
+    })
+
+    it('should return 0.40 with 4 security crew', () => {
+      const result = calculateSecurityBonus(4)
+      expect(result).toBe(0.40)
+    })
+
+    it('should cap at 4 security crew (0.40 multiplier)', () => {
+      const result = calculateSecurityBonus(5)
+      expect(result).toBe(0.40)
+    })
+
+    it('should handle negative security count as 0', () => {
+      const result = calculateSecurityBonus(-1)
+      expect(result).toBe(1.0)
+    })
+
+    it('should never return below 0.40', () => {
+      const result = calculateSecurityBonus(10)
+      expect(result).toBeGreaterThanOrEqual(0.40)
     })
   })
 })

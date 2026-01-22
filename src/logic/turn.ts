@@ -14,9 +14,10 @@ import type { GameOverReason } from './conditions'
 import { processStationArrival } from './station'
 import type { StationReward } from './station'
 import { shouldTriggerEvent, selectRandomEvent } from './events'
+import { shouldDiscoverCargo, selectRandomCargo } from './cargo'
 import { countries } from '../data/countries'
 import type { GameEvent } from '../data/events'
-import type { Captain, Train, CrewMember, Resources } from '../types'
+import type { Captain, Train, CrewMember, Resources, CargoItem } from '../types'
 
 export interface GameState {
   captain: Captain
@@ -44,6 +45,7 @@ export interface TurnResult {
   stationReward?: StationReward
   eventTriggered: boolean
   event?: GameEvent
+  cargoDiscovered?: CargoItem
 }
 
 /**
@@ -109,7 +111,13 @@ export function processTurn(state: GameState): TurnResult {
   const eventTriggered = shouldTriggerEvent()
   const event = eventTriggered ? selectRandomEvent() : undefined
 
-  // 11. Check game end conditions
+  // 11. Check for cargo discovery (only during travel, not when arriving at station)
+  let cargoDiscovered: CargoItem | undefined
+  if (!advanceResult.arrivedAtNextCountry && shouldDiscoverCargo()) {
+    cargoDiscovered = selectRandomCargo()
+  }
+
+  // 12. Check game end conditions
   let gameStatus: GameStatus = 'playing'
   let gameOverReason: GameOverReason | undefined
 
@@ -139,5 +147,6 @@ export function processTurn(state: GameState): TurnResult {
     stationReward,
     eventTriggered,
     event,
+    cargoDiscovered,
   }
 }

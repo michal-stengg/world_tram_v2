@@ -215,4 +215,90 @@ describe('StationModal', () => {
       expect(onVisitShop).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('mini-game button', () => {
+    it('renders Play Mini-Game button when onPlayMiniGame provided', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onPlayMiniGame={vi.fn()}
+        />
+      )
+
+      expect(screen.getByRole('button', { name: /play mini-game/i })).toBeInTheDocument()
+    })
+
+    it('does not render Play Mini-Game button when onPlayMiniGame not provided', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+        />
+      )
+
+      expect(screen.queryByRole('button', { name: /play mini-game/i })).not.toBeInTheDocument()
+    })
+
+    it('clicking Play Mini-Game button calls onPlayMiniGame', () => {
+      const onPlayMiniGame = vi.fn()
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onPlayMiniGame={onPlayMiniGame}
+        />
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /play mini-game/i }))
+
+      expect(onPlayMiniGame).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('quiz button', () => {
+    it('renders Take Quiz button when onTakeQuiz provided', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onTakeQuiz={vi.fn()}
+        />
+      )
+
+      expect(screen.getByRole('button', { name: /take quiz/i })).toBeInTheDocument()
+    })
+
+    it('does not render Take Quiz button when onTakeQuiz not provided', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+        />
+      )
+
+      expect(screen.queryByRole('button', { name: /take quiz/i })).not.toBeInTheDocument()
+    })
+
+    it('clicking Take Quiz button calls onTakeQuiz', () => {
+      const onTakeQuiz = vi.fn()
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onTakeQuiz={onTakeQuiz}
+        />
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /take quiz/i }))
+
+      expect(onTakeQuiz).toHaveBeenCalledTimes(1)
+    })
+  })
 })

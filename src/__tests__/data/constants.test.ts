@@ -14,6 +14,7 @@ import {
   COOK_FOOD_PRODUCTION,
   ENGINEER_FUEL_SAVINGS,
   CREW_SIZE,
+  SECURITY_PENALTY_REDUCTION,
 } from '../../data/constants'
 
 describe('Game Balance Constants', () => {
@@ -113,6 +114,12 @@ describe('Game Balance Constants', () => {
   describe('Crew', () => {
     it('should have CREW_SIZE at 4', () => {
       expect(CREW_SIZE).toBe(4);
+    });
+  });
+
+  describe('Security', () => {
+    it('should have SECURITY_PENALTY_REDUCTION at 0.15', () => {
+      expect(SECURITY_PENALTY_REDUCTION).toBe(0.15);
     });
   });
 });

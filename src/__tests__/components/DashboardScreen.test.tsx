@@ -296,7 +296,7 @@ describe('DashboardScreen', () => {
 
       // Wait for dice animation to complete
       act(() => {
-        vi.advanceTimersByTime(1100)
+        vi.advanceTimersByTime(1700)
       })
 
       // Turn should be executed, incrementing turn count
@@ -311,7 +311,7 @@ describe('DashboardScreen', () => {
 
       // Wait for dice animation to complete
       act(() => {
-        vi.advanceTimersByTime(1100)
+        vi.advanceTimersByTime(1700)
       })
 
       // If cargo discovery modal shows, dismiss it first
@@ -335,7 +335,7 @@ describe('DashboardScreen', () => {
 
       // Wait for dice animation to complete
       act(() => {
-        vi.advanceTimersByTime(1100)
+        vi.advanceTimersByTime(1700)
       })
 
       // If cargo discovery modal shows, dismiss it first
@@ -366,7 +366,7 @@ describe('DashboardScreen', () => {
 
       // Wait for dice animation to complete
       act(() => {
-        vi.advanceTimersByTime(1100)
+        vi.advanceTimersByTime(1700)
       })
 
       const newResources = useGameStore.getState().resources
@@ -388,7 +388,7 @@ describe('DashboardScreen', () => {
 
       // Wait for dice animation to complete
       act(() => {
-        vi.advanceTimersByTime(1100)
+        vi.advanceTimersByTime(1700)
       })
 
       expect(useGameStore.getState().lastTurnResult).not.toBeNull()
@@ -735,7 +735,7 @@ describe('DashboardScreen', () => {
     // Helper to advance timers past dice rolling animation
     const advanceDiceRollingAnimation = () => {
       act(() => {
-        vi.advanceTimersByTime(1100) // 1000ms animation + buffer
+        vi.advanceTimersByTime(1700) // 1000ms animation + buffer
       })
     }
 
@@ -1086,7 +1086,7 @@ describe('DashboardScreen', () => {
       expect(screen.getByRole('button', { name: /visit shop/i })).toBeInTheDocument()
     })
 
-    it('opens CartShop when Visit Shop clicked', () => {
+    it('opens StationShop when Visit Shop clicked', () => {
       act(() => {
         useGameStore.setState({
           lastTurnResult: mockTurnResultWithStation,
@@ -1099,13 +1099,13 @@ describe('DashboardScreen', () => {
       // Click Visit Shop button
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
-      // CartShop should be visible
-      expect(screen.getByTestId('cart-shop')).toBeInTheDocument()
+      // StationShop should be visible
+      expect(screen.getByTestId('station-shop')).toBeInTheDocument()
       // StationModal should be hidden
       expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
     })
 
-    it('closes CartShop and continues when CartShop closed', () => {
+    it('closes StationShop and continues when StationShop closed', () => {
       act(() => {
         useGameStore.setState({
           lastTurnResult: mockTurnResultWithStation,
@@ -1115,15 +1115,15 @@ describe('DashboardScreen', () => {
       })
       render(<DashboardScreen />)
 
-      // Open cart shop
+      // Open station shop
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
-      expect(screen.getByTestId('cart-shop')).toBeInTheDocument()
+      expect(screen.getByTestId('station-shop')).toBeInTheDocument()
 
-      // Close cart shop
+      // Close station shop
       fireEvent.click(screen.getByRole('button', { name: /close/i }))
 
-      // CartShop should be hidden, TurnResultDisplay should show
-      expect(screen.queryByTestId('cart-shop')).not.toBeInTheDocument()
+      // StationShop should be hidden, TurnResultDisplay should show
+      expect(screen.queryByTestId('station-shop')).not.toBeInTheDocument()
       expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
     })
 
@@ -1598,6 +1598,8 @@ describe('DashboardScreen', () => {
           pendingCargoOpen: null,
           currentMiniGame: null,
           lastMiniGameResult: null,
+          playedMiniGames: new Set<string>(),
+          takenQuizzes: new Set<string>(),
         })
       })
     })
@@ -1796,6 +1798,8 @@ describe('DashboardScreen', () => {
           lastMiniGameResult: null,
           currentQuiz: null,
           lastQuizResult: null,
+          playedMiniGames: new Set<string>(),
+          takenQuizzes: new Set<string>(),
         })
       })
     })

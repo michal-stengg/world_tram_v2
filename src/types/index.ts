@@ -168,3 +168,24 @@ export interface QuizResult {
   reward: number;             // money earned
   rating: string;             // e.g., "Quiz Master!", "Great Job!"
 }
+
+// Resource shop cart for purchasing supplies
+export interface ResourceCart {
+  food: number;
+  fuel: number;
+  water: number;
+}
+
+// Prices for resources at a station
+export interface ResourcePrices {
+  food: number;    // price per unit
+  fuel: number;
+  water: number;
+}
+
+// Country-specific pricing
+export interface CountryPrices {
+  countryId: string;
+  prices: ResourcePrices;
+  theme: string;  // flavor text like "French Market"
+}

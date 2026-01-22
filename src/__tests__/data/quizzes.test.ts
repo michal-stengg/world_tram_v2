@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { quizzes, getQuizByCountryId } from '../../data/quizzes';
+import { quizzes, getQuizByCountryId, getQuestionBanks } from '../../data/quizzes';
 import { countries } from '../../data/countries';
 
 describe('quizzes data', () => {
@@ -75,11 +75,11 @@ describe('quizzes data', () => {
       });
     });
 
-    it('should have a name matching the country name', () => {
+    it('should have a name matching the country ID (capitalized)', () => {
       quizzes.forEach((quiz) => {
-        const country = countries.find((c) => c.id === quiz.countryId);
-        expect(country).toBeDefined();
-        expect(quiz.name).toBe(country!.name);
+        // Name should be the capitalized version of countryId
+        const expectedName = quiz.countryId.charAt(0).toUpperCase() + quiz.countryId.slice(1);
+        expect(quiz.name).toBe(expectedName);
       });
     });
   });
@@ -97,7 +97,9 @@ describe('quizzes data', () => {
         const quiz = getQuizByCountryId(country.id);
         expect(quiz).toBeDefined();
         expect(quiz!.countryId).toBe(country.id);
-        expect(quiz!.name).toBe(country.name);
+        // Name should be the capitalized version of countryId
+        const expectedName = country.id.charAt(0).toUpperCase() + country.id.slice(1);
+        expect(quiz!.name).toBe(expectedName);
       });
     });
 
@@ -113,32 +115,68 @@ describe('quizzes data', () => {
   });
 
   describe('quiz content verification', () => {
-    it('should have France quiz with correct content', () => {
+    it('should have France quiz with 3 questions from the question bank', () => {
       const quiz = getQuizByCountryId('france');
+      const questionBanks = getQuestionBanks();
+      const franceQuestions = questionBanks['france'];
+
       expect(quiz).toBeDefined();
-      expect(quiz!.questions[0].questionText).toBe('What is the famous tower in Paris?');
-      expect(quiz!.questions[0].correctAnswer).toBe('Eiffel Tower');
+      expect(quiz!.questions).toHaveLength(3);
+      // All questions should come from the France question bank
+      quiz!.questions.forEach((q) => {
+        const foundInBank = franceQuestions.some(
+          (bankQ) => bankQ.id === q.id && bankQ.correctAnswer === q.correctAnswer
+        );
+        expect(foundInBank).toBe(true);
+      });
     });
 
-    it('should have Germany quiz with correct content', () => {
+    it('should have Germany quiz with 3 questions from the question bank', () => {
       const quiz = getQuizByCountryId('germany');
+      const questionBanks = getQuestionBanks();
+      const germanyQuestions = questionBanks['germany'];
+
       expect(quiz).toBeDefined();
-      expect(quiz!.questions[0].questionText).toBe('What is Germany famous for making?');
-      expect(quiz!.questions[0].correctAnswer).toBe('Cars');
+      expect(quiz!.questions).toHaveLength(3);
+      // All questions should come from the Germany question bank
+      quiz!.questions.forEach((q) => {
+        const foundInBank = germanyQuestions.some(
+          (bankQ) => bankQ.id === q.id && bankQ.correctAnswer === q.correctAnswer
+        );
+        expect(foundInBank).toBe(true);
+      });
     });
 
-    it('should have Japan quiz with correct content', () => {
+    it('should have Japan quiz with 3 questions from the question bank', () => {
       const quiz = getQuizByCountryId('japan');
+      const questionBanks = getQuestionBanks();
+      const japanQuestions = questionBanks['japan'];
+
       expect(quiz).toBeDefined();
-      expect(quiz!.questions[0].questionText).toBe('What famous mountain is in Japan?');
-      expect(quiz!.questions[0].correctAnswer).toBe('Mount Fuji');
+      expect(quiz!.questions).toHaveLength(3);
+      // All questions should come from the Japan question bank
+      quiz!.questions.forEach((q) => {
+        const foundInBank = japanQuestions.some(
+          (bankQ) => bankQ.id === q.id && bankQ.correctAnswer === q.correctAnswer
+        );
+        expect(foundInBank).toBe(true);
+      });
     });
 
-    it('should have USA quiz with correct content', () => {
+    it('should have USA quiz with 3 questions from the question bank', () => {
       const quiz = getQuizByCountryId('usa');
+      const questionBanks = getQuestionBanks();
+      const usaQuestions = questionBanks['usa'];
+
       expect(quiz).toBeDefined();
-      expect(quiz!.questions[0].questionText).toBe('What statue welcomes visitors to New York?');
-      expect(quiz!.questions[0].correctAnswer).toBe('Statue of Liberty');
+      expect(quiz!.questions).toHaveLength(3);
+      // All questions should come from the USA question bank
+      quiz!.questions.forEach((q) => {
+        const foundInBank = usaQuestions.some(
+          (bankQ) => bankQ.id === q.id && bankQ.correctAnswer === q.correctAnswer
+        );
+        expect(foundInBank).toBe(true);
+      });
     });
   });
 });

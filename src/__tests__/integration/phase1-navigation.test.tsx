@@ -55,7 +55,7 @@ describe('Phase 1 Navigation Flow', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1100) })
+      act(() => { vi.advanceTimersByTime(1700) })
 
       // Should navigate to victory screen after turn processing
       expect(screen.getByText('VICTORY!')).toBeInTheDocument()

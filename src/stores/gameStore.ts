@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { GameScreen, Captain, Train, Resources, CrewMember, Cart, MiniGame, MiniGameResult, CargoItem, CargoDiscovery, CargoReward, CountryQuiz, QuizResult } from '../types'
-import { STARTING_RESOURCES } from '../data/constants'
+import type { GameScreen, Captain, Train, Resources, CrewMember, Cart, MiniGame, MiniGameResult, CargoItem, CargoDiscovery, CargoReward, CountryQuiz, QuizResult, ResourceCart, ResourcePrices } from '../types'
+import { STARTING_RESOURCES, MAX_RESOURCES } from '../data/constants'
 import { startingCrew } from '../data/crew'
 import { processTurn } from '../logic/turn'
 import type { TurnResult } from '../logic/turn'
@@ -17,6 +17,8 @@ import { calculateMiniGameReward } from '../logic/minigames'
 import { openCargo, applyCargoReward } from '../logic/cargo'
 import { getQuizByCountryId } from '../data/quizzes'
 import { calculateQuizReward, getQuizRating } from '../logic/quizzes'
+import { calculateCartTotal, applyPurchase } from '../logic/shop'
+import { countries } from '../data/countries'
 
 interface GameState {
   currentScreen: GameScreen
@@ -48,6 +50,11 @@ interface GameState {
   quizAnswers: Map<string, string>  // questionId -> selectedAnswer
   currentQuestionIndex: number
   lastQuizResult: QuizResult | null
+  // Shop state
+  shopCart: ResourceCart  // { food: 0, fuel: 0, water: 0 }
+  // Activity tracking (per visit - clears on new game)
+  playedMiniGames: Set<string>  // countryIds where mini-game was played
+  takenQuizzes: Set<string>     // countryIds where quiz was taken
 }
 
 interface GameActions {
@@ -81,6 +88,13 @@ interface GameActions {
   nextQuestion: () => void
   completeQuiz: () => void
   skipQuiz: () => void
+  // Shop actions
+  updateShopCart: (resource: 'food' | 'fuel' | 'water', amount: number) => void
+  purchaseResources: (prices: ResourcePrices) => void
+  clearShopCart: () => void
+  // Activity tracking
+  hasMiniGameBeenPlayed: (countryId: string) => boolean
+  hasQuizBeenTaken: (countryId: string) => boolean
 }
 
 type GameStore = GameState & GameActions
@@ -127,6 +141,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   quizAnswers: new Map(),
   currentQuestionIndex: 0,
   lastQuizResult: null,
+  // Shop state
+  shopCart: { food: 0, fuel: 0, water: 0 },
+  // Activity tracking
+  playedMiniGames: new Set<string>(),
+  takenQuizzes: new Set<string>(),
 
   // Actions
   setScreen: (screen) => set({ currentScreen: screen }),
@@ -176,6 +195,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
     quizAnswers: new Map(),
     currentQuestionIndex: 0,
     lastQuizResult: null,
+    // Shop and activity tracking state
+    shopCart: { food: 0, fuel: 0, water: 0 },
+    playedMiniGames: new Set<string>(),
+    takenQuizzes: new Set<string>(),
   }),
 
   executeTurn: () => {
@@ -241,9 +264,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   selectCard: (cardId: string) => set((state) => {
     const isSelected = state.selectedCards.includes(cardId)
     if (isSelected) {
-      return { selectedCards: state.selectedCards.filter(id => id !== cardId) }
+      // Deselect if clicking the same card
+      return { selectedCards: [] }
     } else {
-      return { selectedCards: [...state.selectedCards, cardId] }
+      // Select only this card (single selection)
+      return { selectedCards: [cardId] }
     }
   }),
 
@@ -336,7 +361,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   completeMiniGame: (score: number, maxScore: number) => {
     const state = get()
-    const { currentMiniGame, resources } = state
+    const { currentMiniGame, resources, currentCountryIndex } = state
 
     // If no current mini-game, do nothing
     if (!currentMiniGame) {
@@ -361,11 +386,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       newResources.money = resources.money + reward
     }
 
+    // Track that mini-game was played at this country
+    const newPlayedMiniGames = new Set(state.playedMiniGames)
+    const currentCountry = countries[currentCountryIndex]
+    newPlayedMiniGames.add(currentCountry.id)
+
     // Update state
     set({
       resources: newResources,
       lastMiniGameResult: result,
       currentMiniGame: null,
+      playedMiniGames: newPlayedMiniGames,
     })
   },
 
@@ -438,7 +469,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   completeQuiz: () => {
     const state = get()
-    const { currentQuiz, quizAnswers, resources } = state
+    const { currentQuiz, quizAnswers, resources, currentCountryIndex } = state
 
     // If no current quiz, do nothing
     if (!currentQuiz) {
@@ -472,11 +503,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       money: resources.money + reward,
     }
 
+    // Track that quiz was taken at this country
+    const newTakenQuizzes = new Set(state.takenQuizzes)
+    const currentCountry = countries[currentCountryIndex]
+    newTakenQuizzes.add(currentCountry.id)
+
     // Update state
     set({
       resources: newResources,
       lastQuizResult: result,
       currentQuiz: null,
+      takenQuizzes: newTakenQuizzes,
     })
   },
 
@@ -486,5 +523,47 @@ export const useGameStore = create<GameStore>((set, get) => ({
       quizAnswers: new Map(),
       currentQuestionIndex: 0,
     })
+  },
+
+  // Shop actions
+  updateShopCart: (resource: 'food' | 'fuel' | 'water', amount: number) => {
+    set((state) => ({
+      shopCart: {
+        ...state.shopCart,
+        [resource]: Math.max(0, amount),
+      },
+    }))
+  },
+
+  purchaseResources: (prices: ResourcePrices) => {
+    const state = get()
+    const total = calculateCartTotal(state.shopCart, prices)
+
+    // Can't afford
+    if (total > state.resources.money) {
+      return
+    }
+
+    // Apply purchase
+    const newResources = applyPurchase(state.resources, state.shopCart, MAX_RESOURCES)
+
+    set({
+      resources: {
+        ...newResources,
+        money: state.resources.money - total,
+      },
+      shopCart: { food: 0, fuel: 0, water: 0 },
+    })
+  },
+
+  clearShopCart: () => set({ shopCart: { food: 0, fuel: 0, water: 0 } }),
+
+  // Activity tracking
+  hasMiniGameBeenPlayed: (countryId: string) => {
+    return get().playedMiniGames.has(countryId)
+  },
+
+  hasQuizBeenTaken: (countryId: string) => {
+    return get().takenQuizzes.has(countryId)
   },
 }))

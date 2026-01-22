@@ -301,4 +301,86 @@ describe('StationModal', () => {
       expect(onTakeQuiz).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('activity tracking', () => {
+    it('should show "Played" when miniGamePlayed is true', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onPlayMiniGame={vi.fn()}
+          miniGamePlayed={true}
+        />
+      )
+      expect(screen.getByText(/Played/)).toBeInTheDocument()
+    })
+
+    it('should disable mini-game button when miniGamePlayed is true', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onPlayMiniGame={vi.fn()}
+          miniGamePlayed={true}
+        />
+      )
+      const button = screen.getByRole('button', { name: /Played/i })
+      expect(button).toBeDisabled()
+    })
+
+    it('should show "Completed" when quizTaken is true', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onTakeQuiz={vi.fn()}
+          quizTaken={true}
+        />
+      )
+      expect(screen.getByText(/Completed/)).toBeInTheDocument()
+    })
+
+    it('should disable quiz button when quizTaken is true', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onTakeQuiz={vi.fn()}
+          quizTaken={true}
+        />
+      )
+      const button = screen.getByRole('button', { name: /Completed/i })
+      expect(button).toBeDisabled()
+    })
+
+    it('should show "Play Mini-Game" when miniGamePlayed is false', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onPlayMiniGame={vi.fn()}
+          miniGamePlayed={false}
+        />
+      )
+      expect(screen.getByText(/Play Mini-Game/)).toBeInTheDocument()
+    })
+
+    it('should show "Take Quiz?" when quizTaken is false', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onTakeQuiz={vi.fn()}
+          quizTaken={false}
+        />
+      )
+      expect(screen.getByText(/Take Quiz/)).toBeInTheDocument()
+    })
+  })
 })

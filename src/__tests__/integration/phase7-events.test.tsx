@@ -145,7 +145,7 @@ describe('Phase 7: Events Integration', () => {
   // Helper to advance timers past dice rolling animation
   const advanceDiceRollingAnimation = () => {
     act(() => {
-      vi.advanceTimersByTime(1100) // 1000ms animation + buffer
+      vi.advanceTimersByTime(1700) // 1000ms animation + buffer
     })
   }
 
@@ -514,12 +514,11 @@ describe('Phase 7: Events Integration', () => {
       fireEvent.click(goButton)
       advanceDiceRollingAnimation()
 
-      // Select multiple cards (use card-display- prefix)
+      // Select a card (use card-display- prefix)
       const cardElements = screen.getAllByTestId(/^card-display-/)
       fireEvent.click(cardElements[0])
-      fireEvent.click(cardElements[1])
 
-      expect(useGameStore.getState().selectedCards.length).toBe(2)
+      expect(useGameStore.getState().selectedCards.length).toBe(1)
 
       // Roll and continue
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
@@ -664,8 +663,8 @@ describe('Phase 7: Events Integration', () => {
     })
   })
 
-  describe('multiple card selection for events', () => {
-    it('allows selecting and deselecting multiple cards', () => {
+  describe('single card selection for events', () => {
+    it('allows selecting and deselecting a single card', () => {
       mockConfig.shouldTriggerEvent = true
       mockConfig.selectedEvent = engineeringEvent
 
@@ -674,17 +673,17 @@ describe('Phase 7: Events Integration', () => {
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
       advanceDiceRollingAnimation()
 
-      // Select two cards (use card-display- prefix)
+      // Select a card (use card-display- prefix)
       const cardElements = screen.getAllByTestId(/^card-display-/)
-      fireEvent.click(cardElements[0])
-      fireEvent.click(cardElements[1])
-
-      expect(useGameStore.getState().selectedCards.length).toBe(2)
-
-      // Deselect one
       fireEvent.click(cardElements[0])
 
       expect(useGameStore.getState().selectedCards.length).toBe(1)
+
+      // Selecting another card replaces the selection (single selection mode)
+      fireEvent.click(cardElements[1])
+
+      expect(useGameStore.getState().selectedCards.length).toBe(1)
+      expect(useGameStore.getState().selectedCards[0]).not.toBe(cardElements[0].getAttribute('data-testid')?.replace('card-display-', ''))
     })
 
     it('can play zero cards', () => {

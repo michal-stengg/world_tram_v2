@@ -10,6 +10,7 @@ import { getCartById } from '../../data/carts'
 import { getMiniGameByCountryId } from '../../data/minigames'
 import { getQuizByCountryId } from '../../data/quizzes'
 import type { EventResult } from '../../logic/events'
+import { countries } from '../../data/countries'
 
 // Mock data for tests
 const mockCaptain: Captain = {
@@ -57,6 +58,10 @@ describe('gameStore', () => {
       quizAnswers: new Map(),
       currentQuestionIndex: 0,
       lastQuizResult: null,
+      // Shop and activity tracking state
+      shopCart: { food: 0, fuel: 0, water: 0 },
+      playedMiniGames: new Set<string>(),
+      takenQuizzes: new Set<string>(),
     })
   })
 
@@ -605,27 +610,27 @@ describe('gameStore', () => {
         expect(useGameStore.getState().selectedCards).not.toContain(cards[0].id)
       })
 
-      it('should allow selecting multiple cards', () => {
+      it('should only allow selecting one card at a time', () => {
         const { selectCard } = useGameStore.getState()
         selectCard(cards[0].id)
         selectCard(cards[1].id)
-
-        const selectedCards = useGameStore.getState().selectedCards
-        expect(selectedCards).toContain(cards[0].id)
-        expect(selectedCards).toContain(cards[1].id)
-        expect(selectedCards).toHaveLength(2)
-      })
-
-      it('should toggle cards independently', () => {
-        const { selectCard } = useGameStore.getState()
-        selectCard(cards[0].id)
-        selectCard(cards[1].id)
-        selectCard(cards[0].id) // deselect first card
 
         const selectedCards = useGameStore.getState().selectedCards
         expect(selectedCards).not.toContain(cards[0].id)
         expect(selectedCards).toContain(cards[1].id)
         expect(selectedCards).toHaveLength(1)
+      })
+
+      it('should replace selection when selecting different card', () => {
+        const { selectCard } = useGameStore.getState()
+        selectCard(cards[0].id)
+        expect(useGameStore.getState().selectedCards).toEqual([cards[0].id])
+
+        selectCard(cards[1].id)
+        expect(useGameStore.getState().selectedCards).toEqual([cards[1].id])
+
+        selectCard(cards[2].id)
+        expect(useGameStore.getState().selectedCards).toEqual([cards[2].id])
       })
     })
 
@@ -829,23 +834,23 @@ describe('gameStore', () => {
       expect(state.currentMiniGame).toBeNull()
     })
 
-    it('completeMiniGame calculates and applies food reward', () => {
-      // Set up mini-game with food reward (France's Croissant Catcher has maxReward: 15)
+    it('completeMiniGame calculates and applies money reward for France', () => {
+      // Set up mini-game with money reward (France's Croissant Catcher has maxReward: 25)
       const franceMiniGame = getMiniGameByCountryId('france')!
       useGameStore.setState({
         currentMiniGame: franceMiniGame,
-        resources: { ...STARTING_RESOURCES, food: 50 },
+        resources: { ...STARTING_RESOURCES, money: 50 },
       })
 
       const { completeMiniGame } = useGameStore.getState()
-      completeMiniGame(10, 10) // Perfect score = maxReward of 15
+      completeMiniGame(10, 10) // Perfect score = maxReward of 25
 
       const state = useGameStore.getState()
-      expect(state.resources.food).toBe(50 + 15) // food increased by reward
+      expect(state.resources.money).toBe(50 + 25) // money increased by reward
       expect(state.lastMiniGameResult).toEqual({
         score: 10,
         maxScore: 10,
-        reward: 15,
+        reward: 25,
       })
     })
 
@@ -1244,13 +1249,13 @@ describe('gameStore', () => {
 
     describe('completeQuiz', () => {
       beforeEach(() => {
-        // Set up quiz with all correct answers
+        // Set up quiz with all correct answers using actual quiz questions
         const franceQuiz = getQuizByCountryId('france')!
-        const correctAnswers = new Map([
-          ['france-q1', 'Eiffel Tower'],
-          ['france-q2', 'Croissants'],
-          ['france-q3', 'French'],
-        ])
+        // Build correct answers map from actual quiz questions
+        const correctAnswers = new Map<string, string>()
+        franceQuiz.questions.forEach(q => {
+          correctAnswers.set(q.id, q.correctAnswer)
+        })
         useGameStore.setState({
           currentQuiz: franceQuiz,
           quizAnswers: correctAnswers,
@@ -1294,11 +1299,16 @@ describe('gameStore', () => {
       })
 
       it('should handle 2 correct answers', () => {
-        const partialAnswers = new Map([
-          ['france-q1', 'Eiffel Tower'],
-          ['france-q2', 'Croissants'],
-          ['france-q3', 'Wrong Answer'],
-        ])
+        // Get the current quiz and build answers with 2 correct, 1 wrong
+        const franceQuiz = useGameStore.getState().currentQuiz!
+        const partialAnswers = new Map<string, string>()
+        franceQuiz.questions.forEach((q, idx) => {
+          if (idx < 2) {
+            partialAnswers.set(q.id, q.correctAnswer)
+          } else {
+            partialAnswers.set(q.id, 'Wrong Answer')
+          }
+        })
         useGameStore.setState({ quizAnswers: partialAnswers })
 
         const { completeQuiz } = useGameStore.getState()
@@ -1311,11 +1321,16 @@ describe('gameStore', () => {
       })
 
       it('should handle 1 correct answer', () => {
-        const oneCorrect = new Map([
-          ['france-q1', 'Eiffel Tower'],
-          ['france-q2', 'Wrong'],
-          ['france-q3', 'Wrong'],
-        ])
+        // Get the current quiz and build answers with 1 correct, 2 wrong
+        const franceQuiz = useGameStore.getState().currentQuiz!
+        const oneCorrect = new Map<string, string>()
+        franceQuiz.questions.forEach((q, idx) => {
+          if (idx === 0) {
+            oneCorrect.set(q.id, q.correctAnswer)
+          } else {
+            oneCorrect.set(q.id, 'Wrong Answer')
+          }
+        })
         useGameStore.setState({ quizAnswers: oneCorrect })
 
         const { completeQuiz } = useGameStore.getState()
@@ -1327,11 +1342,12 @@ describe('gameStore', () => {
       })
 
       it('should handle 0 correct answers (participation reward)', () => {
-        const noCorrect = new Map([
-          ['france-q1', 'Wrong'],
-          ['france-q2', 'Wrong'],
-          ['france-q3', 'Wrong'],
-        ])
+        // Get the current quiz and build answers with 0 correct
+        const franceQuiz = useGameStore.getState().currentQuiz!
+        const noCorrect = new Map<string, string>()
+        franceQuiz.questions.forEach(q => {
+          noCorrect.set(q.id, 'Wrong Answer')
+        })
         useGameStore.setState({ quizAnswers: noCorrect })
 
         const { completeQuiz } = useGameStore.getState()
@@ -1733,6 +1749,214 @@ describe('gameStore', () => {
       resolveCurrentEvent(failedResult)
 
       expect(useGameStore.getState().cardHand).toHaveLength(3)
+    })
+  })
+
+  describe('shop cart state', () => {
+    describe('initial shop state', () => {
+      it('should have empty shopCart initially', () => {
+        const state = useGameStore.getState()
+        expect(state.shopCart).toEqual({ food: 0, fuel: 0, water: 0 })
+      })
+
+      it('should have empty playedMiniGames Set initially', () => {
+        const state = useGameStore.getState()
+        expect(state.playedMiniGames.size).toBe(0)
+      })
+
+      it('should have empty takenQuizzes Set initially', () => {
+        const state = useGameStore.getState()
+        expect(state.takenQuizzes.size).toBe(0)
+      })
+    })
+
+    describe('updateShopCart', () => {
+      it('should update food in cart', () => {
+        const { updateShopCart } = useGameStore.getState()
+        updateShopCart('food', 10)
+
+        const state = useGameStore.getState()
+        expect(state.shopCart.food).toBe(10)
+      })
+
+      it('should update fuel in cart', () => {
+        const { updateShopCart } = useGameStore.getState()
+        updateShopCart('fuel', 20)
+
+        const state = useGameStore.getState()
+        expect(state.shopCart.fuel).toBe(20)
+      })
+
+      it('should update water in cart', () => {
+        const { updateShopCart } = useGameStore.getState()
+        updateShopCart('water', 15)
+
+        const state = useGameStore.getState()
+        expect(state.shopCart.water).toBe(15)
+      })
+
+      it('should not allow negative amounts', () => {
+        const { updateShopCart } = useGameStore.getState()
+        updateShopCart('food', -5)
+
+        const state = useGameStore.getState()
+        expect(state.shopCart.food).toBe(0)
+      })
+    })
+
+    describe('purchaseResources', () => {
+      const prices = { food: 4, fuel: 3, water: 2 }
+
+      beforeEach(() => {
+        useGameStore.setState({
+          resources: { food: 50, fuel: 100, water: 50, money: 200 },
+          shopCart: { food: 10, fuel: 10, water: 10 },
+        })
+      })
+
+      it('should add resources from cart', () => {
+        const { purchaseResources } = useGameStore.getState()
+        purchaseResources(prices)
+
+        const state = useGameStore.getState()
+        expect(state.resources.food).toBe(60)  // 50 + 10
+        expect(state.resources.fuel).toBe(110) // 100 + 10
+        expect(state.resources.water).toBe(60) // 50 + 10
+      })
+
+      it('should deduct money for purchase', () => {
+        const { purchaseResources } = useGameStore.getState()
+        purchaseResources(prices)
+
+        const state = useGameStore.getState()
+        // (10 * 4) + (10 * 3) + (10 * 2) = 40 + 30 + 20 = 90
+        expect(state.resources.money).toBe(200 - 90)
+      })
+
+      it('should reset cart after purchase', () => {
+        const { purchaseResources } = useGameStore.getState()
+        purchaseResources(prices)
+
+        const state = useGameStore.getState()
+        expect(state.shopCart).toEqual({ food: 0, fuel: 0, water: 0 })
+      })
+
+      it('should not purchase if cannot afford', () => {
+        useGameStore.setState({
+          resources: { food: 50, fuel: 100, water: 50, money: 50 },
+          shopCart: { food: 10, fuel: 10, water: 10 },
+        })
+
+        const { purchaseResources } = useGameStore.getState()
+        purchaseResources(prices)
+
+        const state = useGameStore.getState()
+        // Should not change
+        expect(state.resources.food).toBe(50)
+        expect(state.resources.money).toBe(50)
+        expect(state.shopCart).toEqual({ food: 10, fuel: 10, water: 10 })
+      })
+    })
+
+    describe('clearShopCart', () => {
+      it('should reset cart to empty', () => {
+        useGameStore.setState({
+          shopCart: { food: 10, fuel: 20, water: 15 },
+        })
+
+        const { clearShopCart } = useGameStore.getState()
+        clearShopCart()
+
+        const state = useGameStore.getState()
+        expect(state.shopCart).toEqual({ food: 0, fuel: 0, water: 0 })
+      })
+    })
+  })
+
+  describe('activity tracking', () => {
+    describe('hasMiniGameBeenPlayed', () => {
+      it('should return false for unplayed country', () => {
+        const { hasMiniGameBeenPlayed } = useGameStore.getState()
+        expect(hasMiniGameBeenPlayed('france')).toBe(false)
+      })
+
+      it('should return true after completing mini-game', () => {
+        // Set up and complete mini-game
+        const franceMiniGame = getMiniGameByCountryId('france')!
+        useGameStore.setState({
+          currentMiniGame: franceMiniGame,
+          currentCountryIndex: 0, // France
+          resources: { ...STARTING_RESOURCES },
+        })
+
+        const { completeMiniGame, hasMiniGameBeenPlayed } = useGameStore.getState()
+        completeMiniGame(10, 10)
+
+        expect(hasMiniGameBeenPlayed('france')).toBe(true)
+      })
+    })
+
+    describe('hasQuizBeenTaken', () => {
+      it('should return false for untaken country', () => {
+        const { hasQuizBeenTaken } = useGameStore.getState()
+        expect(hasQuizBeenTaken('france')).toBe(false)
+      })
+
+      it('should return true after completing quiz', () => {
+        // Set up and complete quiz
+        const franceQuiz = getQuizByCountryId('france')!
+        // Build correct answers map from actual quiz questions
+        const correctAnswers = new Map<string, string>()
+        franceQuiz.questions.forEach(q => {
+          correctAnswers.set(q.id, q.correctAnswer)
+        })
+        useGameStore.setState({
+          currentQuiz: franceQuiz,
+          quizAnswers: correctAnswers,
+          currentCountryIndex: 0, // France
+          resources: { ...STARTING_RESOURCES },
+        })
+
+        const { completeQuiz, hasQuizBeenTaken } = useGameStore.getState()
+        completeQuiz()
+
+        expect(hasQuizBeenTaken('france')).toBe(true)
+      })
+    })
+
+    describe('initializeGame resets activity tracking', () => {
+      it('should reset playedMiniGames', () => {
+        useGameStore.setState({
+          playedMiniGames: new Set(['france', 'germany']),
+        })
+
+        const { initializeGame } = useGameStore.getState()
+        initializeGame()
+
+        expect(useGameStore.getState().playedMiniGames.size).toBe(0)
+      })
+
+      it('should reset takenQuizzes', () => {
+        useGameStore.setState({
+          takenQuizzes: new Set(['france', 'germany']),
+        })
+
+        const { initializeGame } = useGameStore.getState()
+        initializeGame()
+
+        expect(useGameStore.getState().takenQuizzes.size).toBe(0)
+      })
+
+      it('should reset shopCart', () => {
+        useGameStore.setState({
+          shopCart: { food: 10, fuel: 20, water: 15 },
+        })
+
+        const { initializeGame } = useGameStore.getState()
+        initializeGame()
+
+        expect(useGameStore.getState().shopCart).toEqual({ food: 0, fuel: 0, water: 0 })
+      })
     })
   })
 })

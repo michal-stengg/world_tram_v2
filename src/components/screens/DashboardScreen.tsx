@@ -7,7 +7,7 @@ import { CrewPanel } from '../game/CrewPanel'
 import { TurnResultDisplay } from '../game/TurnResultDisplay'
 import { StationModal } from '../game/StationModal'
 import { EventModal } from '../game/EventModal'
-import { CartShop } from '../game/CartShop'
+import { StationShop } from '../game/StationShop'
 import { GoButton } from '../game/GoButton'
 import { CargoDiscoveryModal } from '../game/CargoDiscoveryModal'
 import { CargoOpenModal } from '../game/CargoOpenModal'
@@ -18,6 +18,8 @@ import { CaptainStats } from '../game/CaptainStats'
 import { TrainStats } from '../game/TrainStats'
 import { useGameStore } from '../../stores/gameStore'
 import { countries } from '../../data/countries'
+import { getPricesForCountry } from '../../data/shopPrices'
+import { MAX_RESOURCES } from '../../data/constants'
 import { resolveEvent } from '../../logic/events'
 import { rollDice } from '../../logic/dice'
 import type { EventResult } from '../../logic/events'
@@ -60,6 +62,8 @@ const selectionNameStyle: React.CSSProperties = {
 }
 
 const resourceZoneStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'center',
   padding: '0.5rem 1rem',
   borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
 }
@@ -120,6 +124,16 @@ export function DashboardScreen() {
   const ownedCarts = useGameStore((state) => state.ownedCarts)
   const purchaseCart = useGameStore((state) => state.purchaseCart)
 
+  // Shop state
+  const shopCart = useGameStore((state) => state.shopCart)
+  const updateShopCart = useGameStore((state) => state.updateShopCart)
+  const purchaseResources = useGameStore((state) => state.purchaseResources)
+  const clearShopCart = useGameStore((state) => state.clearShopCart)
+
+  // Activity tracking
+  const playedMiniGames = useGameStore((state) => state.playedMiniGames)
+  const takenQuizzes = useGameStore((state) => state.takenQuizzes)
+
   // Cargo related state
   const carriedCargo = useGameStore((state) => state.carriedCargo)
   const pendingCargoOpen = useGameStore((state) => state.pendingCargoOpen)
@@ -163,6 +177,7 @@ export function DashboardScreen() {
   // Turn dice rolling animation state
   const [isTurnRolling, setIsTurnRolling] = useState(false)
   const [turnDiceDisplayed, setTurnDiceDisplayed] = useState(1)
+  const [showFinalRoll, setShowFinalRoll] = useState(false)
 
   // When a new turn result comes in with an event, set it in the store
   useEffect(() => {
@@ -196,16 +211,16 @@ export function DashboardScreen() {
     }
   }, [lastTurnResult, currentEvent, showCargoDiscovery])
 
-  // Animate turn dice while rolling
+  // Animate turn dice while rolling (but not when showing final result)
   useEffect(() => {
-    if (!isTurnRolling) return
+    if (!isTurnRolling || showFinalRoll) return
 
     const interval = setInterval(() => {
       setTurnDiceDisplayed((prev) => (prev % 6) + 1)
     }, 100)
 
     return () => clearInterval(interval)
-  }, [isTurnRolling])
+  }, [isTurnRolling, showFinalRoll])
 
   // When arriving at station with cargo, open cargo before showing station modal
   useEffect(() => {
@@ -228,12 +243,24 @@ export function DashboardScreen() {
   const handleGoClick = () => {
     // Start the dice rolling animation
     setIsTurnRolling(true)
+    setShowFinalRoll(false)
 
-    // After animation delay, execute the turn
+    // After animation delay, execute the turn and show final value
     setTimeout(() => {
-      setIsTurnRolling(false)
       executeTurn()
-    }, 1000)
+      // Get the final dice value from the turn result
+      const result = useGameStore.getState().lastTurnResult
+      if (result) {
+        setTurnDiceDisplayed(result.diceRoll)
+        setShowFinalRoll(true)
+      }
+
+      // After showing final value, dismiss the overlay
+      setTimeout(() => {
+        setIsTurnRolling(false)
+        setShowFinalRoll(false)
+      }, 800)
+    }, 800)
   }
 
   const handleDismissStationModal = () => {
@@ -241,17 +268,31 @@ export function DashboardScreen() {
   }
 
   const handleVisitShop = () => {
+    clearShopCart()  // Reset cart when opening shop
     setShowStationModal(false)
     setShowCartShop(true)
   }
 
   const handleCloseCartShop = () => {
+    clearShopCart()  // Clear cart on close
     setShowCartShop(false)
     // Station modal was already dismissed, so just continue to turn result
   }
 
   const handlePurchaseCart = (cartId: string) => {
     purchaseCart(cartId)
+  }
+
+  const handlePurchaseResources = () => {
+    const currentCountry = countries[currentCountryIndex]
+    const countryPrices = getPricesForCountry(currentCountry.id)
+    if (countryPrices) {
+      purchaseResources(countryPrices.prices)
+    }
+  }
+
+  const handleUpdateShopCart = (resource: 'food' | 'fuel' | 'water', amount: number) => {
+    updateShopCart(resource, amount)
   }
 
   const handleDismissTurnResult = () => {
@@ -457,11 +498,15 @@ export function DashboardScreen() {
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
                   border: '4px solid var(--color-gold, #F7B538)',
                 }}
-                animate={{
+                animate={showFinalRoll ? {
+                  scale: [1, 1.2, 1],
+                } : {
                   rotate: [0, -15, 15, -10, 10, 0],
                   scale: [1, 1.1, 0.95, 1.05, 1],
                 }}
-                transition={{
+                transition={showFinalRoll ? {
+                  duration: 0.3,
+                } : {
                   duration: 0.5,
                   repeat: Infinity,
                   repeatType: 'loop',
@@ -474,14 +519,14 @@ export function DashboardScreen() {
                 style={{
                   marginTop: '1.5rem',
                   fontSize: '1.5rem',
-                  color: 'var(--color-gold, #F7B538)',
+                  color: showFinalRoll ? '#4CAF50' : 'var(--color-gold, #F7B538)',
                   fontWeight: 'bold',
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
                 }}
-                animate={{ opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 0.8, repeat: Infinity }}
+                animate={showFinalRoll ? { opacity: 1, scale: [0.8, 1.1, 1] } : { opacity: [0.5, 1, 0.5] }}
+                transition={showFinalRoll ? { duration: 0.3 } : { duration: 0.8, repeat: Infinity }}
               >
-                Rolling...
+                {showFinalRoll ? `Rolled ${turnDiceDisplayed}!` : 'Rolling...'}
               </motion.div>
             </motion.div>
           </>
@@ -529,6 +574,8 @@ export function DashboardScreen() {
           onVisitShop={handleVisitShop}
           onPlayMiniGame={handlePlayMiniGame}
           onTakeQuiz={handleTakeQuiz}
+          miniGamePlayed={playedMiniGames.has(countries[currentCountryIndex].id)}
+          quizTaken={takenQuizzes.has(countries[currentCountryIndex].id)}
         />
       )}
 
@@ -550,15 +597,26 @@ export function DashboardScreen() {
         />
       )}
 
-      {/* Cart Shop Modal - shows when visiting shop from station */}
-      {showCartShop && (
-        <CartShop
-          money={resources.money}
-          ownedCarts={ownedCarts}
-          onPurchase={handlePurchaseCart}
-          onClose={handleCloseCartShop}
-        />
-      )}
+      {/* Station Shop Modal - shows when visiting shop from station */}
+      {showCartShop && (() => {
+        const currentCountry = countries[currentCountryIndex]
+        const countryPrices = getPricesForCountry(currentCountry.id)
+        return countryPrices ? (
+          <StationShop
+            money={resources.money}
+            ownedCarts={ownedCarts}
+            prices={countryPrices.prices}
+            shopCart={shopCart}
+            maxResources={MAX_RESOURCES}
+            currentResources={resources}
+            countryTheme={countryPrices.theme}
+            onPurchaseCart={handlePurchaseCart}
+            onUpdateShopCart={handleUpdateShopCart}
+            onPurchaseResources={handlePurchaseResources}
+            onClose={handleCloseCartShop}
+          />
+        ) : null
+      })()}
 
       {/* Turn Result Modal - shows after station modal is dismissed (or immediately if no station) */}
       {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !showCartShop && !currentEvent && !showCargoDiscovery && !pendingCargoOpen && !currentMiniGame && !showQuizModal && (

@@ -18,8 +18,8 @@ export const minigames: MiniGame[] = [
     type: 'catcher',
     icon: '🥐',
     description: 'Catch falling croissants!',
-    rewardType: 'food',
-    maxReward: 15,
+    rewardType: 'money',
+    maxReward: 25,
   },
   {
     id: 'beer-stein-balance',
@@ -48,8 +48,8 @@ export const minigames: MiniGame[] = [
     type: 'catcher',
     icon: '🥟',
     description: 'Catch the dumplings!',
-    rewardType: 'food',
-    maxReward: 15,
+    rewardType: 'money',
+    maxReward: 25,
   },
   {
     id: 'sushi-sort',
@@ -58,8 +58,8 @@ export const minigames: MiniGame[] = [
     type: 'timing',
     icon: '🍣',
     description: 'Sort sushi at the perfect time!',
-    rewardType: 'food',
-    maxReward: 15,
+    rewardType: 'money',
+    maxReward: 25,
   },
   {
     id: 'night-market-grab',
@@ -98,8 +98,8 @@ export const minigames: MiniGame[] = [
     type: 'timing',
     icon: '🍁',
     description: 'Pour the perfect amount!',
-    rewardType: 'food',
-    maxReward: 15,
+    rewardType: 'money',
+    maxReward: 25,
   },
   {
     id: 'hot-dog-stack',
@@ -108,8 +108,8 @@ export const minigames: MiniGame[] = [
     type: 'catcher',
     icon: '🌭',
     description: 'Stack those hot dogs!',
-    rewardType: 'food',
-    maxReward: 15,
+    rewardType: 'money',
+    maxReward: 25,
   },
 ];
 

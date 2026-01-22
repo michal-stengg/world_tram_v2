@@ -114,9 +114,9 @@ describe('MiniGameModal', () => {
 
       // Score should be displayed
       expect(screen.getByText(/Score:/)).toBeInTheDocument()
-      // Reward should be displayed (food for france)
+      // Reward should be displayed (money for france)
       expect(screen.getByText(/Reward:/)).toBeInTheDocument()
-      expect(screen.getByText(/food/i)).toBeInTheDocument()
+      expect(screen.getByText(/money/i)).toBeInTheDocument()
     })
 
     it('clicking Collect Reward calls onComplete', () => {

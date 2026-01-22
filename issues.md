@@ -1507,6 +1507,162 @@
 
 ---
 
+# Feature: Money Economy Overhaul
+
+> **Goal:** Make money the central reward currency and give players strategic spending choices.
+> **Key Changes:**
+> 1. All mini-games award money (instead of food/money split)
+> 2. Merged Station Shop with two columns: Carts | Resources
+> 3. Dynamic pricing for resources based on country
+> 4. Track mini-game/quiz activity per country (once per visit)
+
+---
+
+## ECON.1 Mini-Games Award Money Only
+
+### ECON.1.1 Update Mini-Game Rewards
+- [x] Change all mini-games to award money instead of food
+  - File: `src/data/minigames.ts`
+  - Tests: `src/__tests__/data/minigames.test.ts`
+  - Changes:
+    - France: food 15 → money 25
+    - Germany: money 50 → money 50 (no change)
+    - Russia: money 40 → money 40 (no change)
+    - China: food 15 → money 25
+    - Japan: food 15 → money 25
+    - Singapore: money 50 → money 50 (no change)
+    - Australia: money 40 → money 40 (no change)
+    - Brazil: money 50 → money 50 (no change)
+    - Canada: food 15 → money 25
+    - USA: food 15 → money 25
+  - Depends: none
+
+---
+
+## ECON.2 Resource Pricing Data
+
+### ECON.2.1 Add Resource Pricing Types
+- [x] Add ResourceCart, ResourcePrices, CountryPrices types
+  - File: `src/types/index.ts`
+  - Types:
+    - `ResourceCart`: { food: number, fuel: number, water: number }
+    - `ResourcePrices`: { food: number, fuel: number, water: number }
+    - `CountryPrices`: { countryId: string, prices: ResourcePrices, theme: string }
+  - Depends: none
+
+### ECON.2.2 Create Shop Prices Data
+- [x] Create country-specific resource pricing
+  - File: `src/data/shopPrices.ts` (new)
+  - Tests: `src/__tests__/data/shopPrices.test.ts` (new)
+  - Pricing per country (food/fuel/water per unit):
+    - France: $4/$3/$2 (French Market)
+    - Germany: $3/$2/$3 (German Market)
+    - Russia: $4/$4/$2 (Russian Market)
+    - China: $2/$3/$3 (Chinese Market)
+    - Japan: $3/$4/$2 (Japanese Market)
+    - Singapore: $3/$3/$4 (Singapore Market)
+    - Australia: $3/$3/$5 (Australian Market)
+    - Brazil: $2/$3/$2 (Brazilian Market)
+    - Canada: $3/$2/$2 (Canadian Market)
+    - USA: $3/$2/$3 (American Market)
+  - Export: `countryPrices`, `getPricesForCountry(countryId)`
+  - Depends: ECON.2.1
+
+---
+
+## ECON.3 Resource Purchase Logic
+
+### ECON.3.1 Create Shop Logic
+- [x] Implement resource purchase calculations
+  - File: `src/logic/shop.ts` (new)
+  - Tests: `src/__tests__/logic/shop.test.ts` (new)
+  - Functions:
+    - `calculateCartTotal(cart, prices): number`
+    - `canAfford(cart, prices, money): boolean`
+    - `applyPurchase(resources, cart, maxResources): Resources`
+  - Depends: ECON.2.1
+
+---
+
+## ECON.4 Shop Store State + Activity Tracking
+
+### ECON.4.1 Add Shop State to Game Store
+- [x] Add shopCart, playedMiniGames, takenQuizzes state
+  - File: `src/stores/gameStore.ts`
+  - Tests: `src/__tests__/stores/gameStore.test.ts`
+  - Add state:
+    - `shopCart: ResourceCart` (default: { food: 0, fuel: 0, water: 0 })
+    - `playedMiniGames: Set<string>` (countryIds)
+    - `takenQuizzes: Set<string>` (countryIds)
+  - Add actions:
+    - `updateShopCart(resource, amount)`
+    - `purchaseResources(prices)` - apply cart, deduct money, reset cart
+    - `clearShopCart()`
+    - `hasMiniGameBeenPlayed(countryId): boolean`
+    - `hasQuizBeenTaken(countryId): boolean`
+  - Update `completeMiniGame`: add country to `playedMiniGames`
+  - Update `completeQuiz`: add country to `takenQuizzes`
+  - Update `initializeGame()`: reset all new state
+  - Depends: ECON.2.1, ECON.3.1
+
+---
+
+## ECON.5 Merged Shop UI Component
+
+### ECON.5.1 Create StationShop Component
+- [x] Create merged shop with Carts and Resources columns
+  - File: `src/components/game/StationShop.tsx` (new)
+  - Tests: `src/__tests__/components/StationShop.test.tsx` (new)
+  - Props: money, ownedCarts, prices, shopCart, maxResources, currentResources, countryTheme, onPurchaseCart, onUpdateShopCart, onPurchaseResources, onClose
+  - Features:
+    - Left column: Cart purchases (one-time, uses existing CartShop logic)
+    - Right column: Resource purchases with +/- counters
+    - Show price per unit and total cost
+    - "Purchase Supplies" button
+    - Disable + when at max capacity or can't afford
+  - Depends: ECON.4.1
+
+---
+
+## ECON.6 Integration
+
+### ECON.6.1 Update StationModal with Disabled State
+- [x] Add miniGamePlayed/quizTaken props to StationModal
+  - File: `src/components/game/StationModal.tsx`
+  - Tests: `src/__tests__/components/StationModal.test.tsx`
+  - Add props: `miniGamePlayed?: boolean`, `quizTaken?: boolean`
+  - When `miniGamePlayed`: show "Played ✓" (disabled)
+  - When `quizTaken`: show "Completed ✓" (disabled)
+  - Depends: ECON.4.1
+
+### ECON.6.2 Dashboard Integration
+- [x] Wire DashboardScreen with new shop and activity tracking
+  - File: `src/components/screens/DashboardScreen.tsx`
+  - Tests: `src/__tests__/components/DashboardScreen.test.tsx`
+  - Replace CartShop with StationShop
+  - Pass `miniGamePlayed` and `quizTaken` to StationModal
+  - Get prices for current country
+  - Wire shop cart state and actions
+  - Depends: ECON.5.1, ECON.6.1
+
+---
+
+## ECON.7 Verification
+
+### ECON.7.1 Run Full Test Suite
+- [x] Verify all tests pass
+  - Command: `npm test`
+  - Result: 1385/1392 tests pass (7 pre-existing integration test failures)
+  - Depends: ECON.6.2
+
+### ECON.7.2 Production Build
+- [x] Verify build succeeds
+  - Command: `npm run build`
+  - Result: Build successful
+  - Depends: ECON.7.1
+
+---
+
 # Phase 12: Audio & Polish (P3)
 
 > **Goal:** Sound effects, music, and animations.

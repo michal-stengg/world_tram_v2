@@ -15,19 +15,19 @@ export function ResourceBar() {
   const containerStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     padding: '0.5rem 1rem',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     borderRadius: '8px',
-    gap: '1rem',
+    gap: '1.5rem',
     flexWrap: 'wrap',
   }
 
   const metersContainerStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
-    flex: 1,
+    justifyContent: 'center',
+    gap: '1.5rem',
     flexWrap: 'wrap',
   }
 

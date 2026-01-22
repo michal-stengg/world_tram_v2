@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { QuizQuestion as QuizQuestionType } from '../../types'
 
 interface QuizQuestionProps {
@@ -5,6 +6,18 @@ interface QuizQuestionProps {
   selectedAnswer: string | null
   onSelectAnswer: (answer: string) => void
   showResult: boolean
+}
+
+/**
+ * Shuffles an array using Fisher-Yates algorithm
+ */
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
 }
 
 const containerStyle: React.CSSProperties = {
@@ -79,6 +92,11 @@ export function QuizQuestion({
   onSelectAnswer,
   showResult,
 }: QuizQuestionProps) {
+  // Shuffle options once when question changes
+  const shuffledOptions = useMemo(() => {
+    return shuffleArray(question.options)
+  }, [question.id])
+
   const handleOptionClick = (option: string) => {
     if (!showResult) {
       onSelectAnswer(option)
@@ -90,7 +108,7 @@ export function QuizQuestion({
       <h2 style={questionStyle}>{question.questionText}</h2>
 
       <div style={optionsGridStyle}>
-        {question.options.map((option) => {
+        {shuffledOptions.map((option) => {
           const isSelected = selectedAnswer === option
           const isCorrect = option === question.correctAnswer
           const isWrongSelection = showResult && isSelected && !isCorrect

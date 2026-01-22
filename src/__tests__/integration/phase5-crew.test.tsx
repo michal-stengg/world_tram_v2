@@ -74,7 +74,7 @@ describe('Phase 5 Crew Management Integration', () => {
       // Execute a turn to see food production effect
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1700) })
+      act(() => { vi.advanceTimersByTime(1900) })
 
       // Get state after turn
       const stateAfterTurn = useGameStore.getState()
@@ -100,7 +100,7 @@ describe('Phase 5 Crew Management Integration', () => {
       // First, execute a turn with 1 cook to get baseline
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1700) })
+      act(() => { vi.advanceTimersByTime(1900) })
 
       const stateWithOneCook = useGameStore.getState()
       const foodChangeWithOneCook = stateWithOneCook.lastTurnResult!.resourceChanges.food
@@ -126,7 +126,7 @@ describe('Phase 5 Crew Management Integration', () => {
 
       // Execute turn with 0 cooks
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1700) })
+      act(() => { vi.advanceTimersByTime(1900) })
 
       const stateWithNoCooks = useGameStore.getState()
       const foodChangeWithNoCooks = stateWithNoCooks.lastTurnResult!.resourceChanges.food
@@ -144,7 +144,7 @@ describe('Phase 5 Crew Management Integration', () => {
       // Execute a turn with default crew (1 engineer - Tom)
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1700) })
+      act(() => { vi.advanceTimersByTime(1900) })
 
       const stateWithOneEngineer = useGameStore.getState()
       const fuelChangeWithOneEngineer = stateWithOneEngineer.lastTurnResult!.resourceChanges.fuel
@@ -184,7 +184,7 @@ describe('Phase 5 Crew Management Integration', () => {
 
       // Execute turn with 4 engineers
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1700) })
+      act(() => { vi.advanceTimersByTime(1900) })
 
       const stateWithAllEngineers = useGameStore.getState()
       const fuelChangeWithAllEngineers = stateWithAllEngineers.lastTurnResult!.resourceChanges.fuel
@@ -223,7 +223,7 @@ describe('Phase 5 Crew Management Integration', () => {
       // Execute turn with 0 engineers
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1700) })
+      act(() => { vi.advanceTimersByTime(1900) })
 
       const stateWithNoEngineers = useGameStore.getState()
       const fuelChangeWithNoEngineers = stateWithNoEngineers.lastTurnResult!.resourceChanges.fuel
@@ -250,7 +250,7 @@ describe('Phase 5 Crew Management Integration', () => {
       // Execute a turn
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1700) })
+      act(() => { vi.advanceTimersByTime(1900) })
 
       // Verify Tom is still security after the turn
       crew = useGameStore.getState().crew
@@ -284,7 +284,7 @@ describe('Phase 5 Crew Management Integration', () => {
       // Dismiss turn result modal and execute next turn
       for (let i = 0; i < 3; i++) {
         fireEvent.click(goButton)
-        act(() => { vi.advanceTimersByTime(1700) })
+        act(() => { vi.advanceTimersByTime(1900) })
 
         // If a turn result modal appears, dismiss it
         const dismissButton = screen.queryByRole('button', { name: /continue/i })

@@ -5,6 +5,8 @@ import { CardHand } from './CardHand'
 import type { GameEvent } from '../../data/events'
 import type { BonusCard } from '../../data/cards'
 import type { EventResult } from '../../logic/events'
+import type { CrewMember } from '../../types'
+import { calculateCrewEventBonus } from '../../logic/crew'
 
 export interface EventModalProps {
   event: GameEvent
@@ -16,6 +18,8 @@ export interface EventModalProps {
   onContinue: () => void
   isRolling?: boolean
   diceValue?: number
+  captainStats?: { engineering: number; food: number; security: number }
+  crew?: CrewMember[]
 }
 
 export function EventModal({
@@ -28,9 +32,24 @@ export function EventModal({
   onContinue,
   isRolling = false,
   diceValue,
+  captainStats,
+  crew,
 }: EventModalProps) {
   // State for the animated dice display during rolling
   const [displayedDice, setDisplayedDice] = useState(diceValue || 1)
+
+  // Calculate bonuses (updates dynamically when cards are selected)
+  const captainBonus = captainStats?.[event.statTested] ?? 0
+  const crewBonus = crew ? calculateCrewEventBonus(crew, event.statTested) : 0
+
+  // Calculate card bonus from selected cards that match the event stat
+  const selectedCards = cardHand.filter(card => selectedCardIds.includes(card.id))
+  const cardBonus = selectedCards
+    .filter(card => card.stat === event.statTested)
+    .reduce((sum, card) => sum + card.bonus, 0)
+
+  const totalBonus = captainBonus + crewBonus + cardBonus
+  const effectiveRollNeeded = Math.max(1, event.difficulty - totalBonus)
 
   // Animate through dice values during rolling
   useEffect(() => {
@@ -210,6 +229,24 @@ export function EventModal({
           <span style={labelStyle}>Penalty if Failed:</span>
           <span style={valueStyle} data-testid="event-penalty">{formatPenalty(event.penalty)}</span>
         </div>
+
+        {/* Bonuses and effective roll display - only show before result */}
+        {!hasResult && captainStats && (
+          <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px' }} data-testid="event-bonuses">
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <span style={{ color: '#4CAF50' }} data-testid="captain-bonus">+{captainBonus} Captain</span>
+              {crewBonus > 0 && (
+                <span style={{ color: '#2196F3' }} data-testid="crew-bonus">+{crewBonus} Crew</span>
+              )}
+              {cardBonus > 0 && (
+                <span style={{ color: '#FF9800' }} data-testid="card-bonus">+{cardBonus} Cards</span>
+              )}
+            </div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-gold, #F7B538)' }} data-testid="effective-roll">
+              Need to Roll: {effectiveRollNeeded}+
+            </div>
+          </div>
+        )}
 
         {!hasResult && !isRolling && (
           <>

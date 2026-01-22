@@ -121,6 +121,7 @@ export function DashboardScreen() {
 
   // Cart shop related state
   const resources = useGameStore((state) => state.resources)
+  const crew = useGameStore((state) => state.crew)
   const ownedCarts = useGameStore((state) => state.ownedCarts)
   const purchaseCart = useGameStore((state) => state.purchaseCart)
 
@@ -255,11 +256,11 @@ export function DashboardScreen() {
         setShowFinalRoll(true)
       }
 
-      // After showing final value, dismiss the overlay
+      // After showing final value, dismiss the overlay (hold for 1 second)
       setTimeout(() => {
         setIsTurnRolling(false)
         setShowFinalRoll(false)
-      }, 800)
+      }, 1000)
     }, 800)
   }
 
@@ -276,7 +277,8 @@ export function DashboardScreen() {
   const handleCloseCartShop = () => {
     clearShopCart()  // Clear cart on close
     setShowCartShop(false)
-    // Station modal was already dismissed, so just continue to turn result
+    // Return to station modal so player can still play minigames/quizzes
+    setShowStationModal(true)
   }
 
   const handlePurchaseCart = (cartId: string) => {
@@ -370,12 +372,13 @@ export function DashboardScreen() {
 
     // After animation delay, show the result
     setTimeout(() => {
-      // Resolve the event
+      // Resolve the event (include crew for crew bonus calculation)
       const result = resolveEvent(
         currentEvent,
         playedCards,
         selectedCaptain.stats,
-        diceRoll
+        diceRoll,
+        crew
       )
 
       setEventResult(result)
@@ -545,6 +548,8 @@ export function DashboardScreen() {
           onContinue={handleEventContinue}
           isRolling={isRolling}
           diceValue={diceValue}
+          captainStats={selectedCaptain?.stats}
+          crew={crew}
         />
       )}
 

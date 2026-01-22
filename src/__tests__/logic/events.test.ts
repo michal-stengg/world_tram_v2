@@ -6,6 +6,7 @@ import { shouldTriggerEvent, selectRandomEvent, resolveEvent } from '../../logic
 import { events } from '../../data/events';
 import type { GameEvent } from '../../data/events';
 import type { BonusCard } from '../../data/cards';
+import type { CrewMember, CrewRole } from '../../types';
 
 describe('Event Trigger Logic', () => {
   describe('shouldTriggerEvent', () => {
@@ -312,6 +313,97 @@ describe('Event Trigger Logic', () => {
       expect(result.penalty).toEqual({
         type: 'progress',
         amount: 5,
+      });
+    });
+
+    describe('crew bonus', () => {
+      const createCrew = (roles: CrewRole[]): CrewMember[] => {
+        return roles.map((role, i) => ({
+          id: `crew-${i}`,
+          name: `Crew ${i}`,
+          role,
+          avatar: '👤',
+        }));
+      };
+
+      it('should not include crew bonus when crew is not provided', () => {
+        // dice (5) + captain engineering (3) = 8
+        const result = resolveEvent(mockEvent, [], mockCaptainStats, 5);
+        expect(result.total).toBe(8);
+      });
+
+      it('should not include crew bonus when crew is empty', () => {
+        // dice (5) + captain engineering (3) + crew (0) = 8
+        const result = resolveEvent(mockEvent, [], mockCaptainStats, 5, []);
+        expect(result.total).toBe(8);
+      });
+
+      it('should add crew bonus for matching role (engineer -> engineering)', () => {
+        const crew = createCrew(['engineer', 'cook', 'security']);
+        // dice (5) + captain engineering (3) + crew bonus (1) = 9
+        const result = resolveEvent(mockEvent, [], mockCaptainStats, 5, crew);
+        expect(result.total).toBe(9);
+      });
+
+      it('should add crew bonus for multiple matching roles', () => {
+        const crew = createCrew(['engineer', 'engineer', 'cook', 'security']);
+        // dice (5) + captain engineering (3) + crew bonus (2) = 10
+        const result = resolveEvent(mockEvent, [], mockCaptainStats, 5, crew);
+        expect(result.total).toBe(10);
+        expect(result.success).toBe(true); // exactly meets difficulty of 10
+      });
+
+      it('should add cook bonus for food events', () => {
+        const foodEvent: GameEvent = {
+          id: 'food-event',
+          name: 'Food Event',
+          description: 'A food test event',
+          statTested: 'food',
+          difficulty: 10,
+          penalty: { type: 'resource', resource: 'food', amount: 25 },
+        };
+        const crew = createCrew(['engineer', 'cook', 'cook', 'security']);
+        // dice (5) + captain food (2) + crew bonus (2) = 9
+        const result = resolveEvent(foodEvent, [], mockCaptainStats, 5, crew);
+        expect(result.total).toBe(9);
+      });
+
+      it('should add security bonus for security events', () => {
+        const securityEvent: GameEvent = {
+          id: 'security-event',
+          name: 'Security Event',
+          description: 'A security test event',
+          statTested: 'security',
+          difficulty: 8,
+          penalty: { type: 'resource', resource: 'money', amount: 50 },
+        };
+        const crew = createCrew(['engineer', 'cook', 'security', 'security']);
+        // dice (5) + captain security (1) + crew bonus (2) = 8
+        const result = resolveEvent(securityEvent, [], mockCaptainStats, 5, crew);
+        expect(result.total).toBe(8);
+        expect(result.success).toBe(true); // exactly meets difficulty
+      });
+
+      it('should combine all bonuses: dice + captain + cards + crew', () => {
+        const matchingCard: BonusCard = {
+          id: 'test-card',
+          name: 'Engineering Card',
+          stat: 'engineering',
+          bonus: 2,
+          description: 'Test card',
+        };
+        const crew = createCrew(['engineer', 'engineer', 'cook', 'security']);
+        // dice (5) + captain engineering (3) + card bonus (2) + crew bonus (2) = 12
+        const result = resolveEvent(mockEvent, [matchingCard], mockCaptainStats, 5, crew);
+        expect(result.total).toBe(12);
+        expect(result.success).toBe(true);
+      });
+
+      it('should not count free crew members', () => {
+        const crew = createCrew(['free', 'free', 'free', 'engineer']);
+        // dice (5) + captain engineering (3) + crew bonus (1) = 9
+        const result = resolveEvent(mockEvent, [], mockCaptainStats, 5, crew);
+        expect(result.total).toBe(9);
       });
     });
   });

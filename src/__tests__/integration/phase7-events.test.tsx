@@ -145,7 +145,7 @@ describe('Phase 7: Events Integration', () => {
   // Helper to advance timers past dice rolling animation
   const advanceDiceRollingAnimation = () => {
     act(() => {
-      vi.advanceTimersByTime(1700) // 1000ms animation + buffer
+      vi.advanceTimersByTime(1900) // 1000ms animation + buffer
     })
   }
 
@@ -363,8 +363,8 @@ describe('Phase 7: Events Integration', () => {
       advanceDiceRollingAnimation()
 
       expect(screen.getByTestId('event-result')).toHaveTextContent('Success!')
-      // Total: 6 (dice) + 5 (captain engineering) = 11
-      expect(screen.getByTestId('event-total')).toHaveTextContent('11')
+      // Total: 6 (dice) + 5 (captain engineering) + 1 (crew engineer) = 12
+      expect(screen.getByTestId('event-total')).toHaveTextContent('12')
     })
   })
 
@@ -415,8 +415,8 @@ describe('Phase 7: Events Integration', () => {
       advanceDiceRollingAnimation()
 
       expect(screen.getByTestId('event-result')).toHaveTextContent('Failed!')
-      // Total: 1 (dice) + 5 (captain engineering) = 6
-      expect(screen.getByTestId('event-total')).toHaveTextContent('6')
+      // Total: 1 (dice) + 5 (captain engineering) + 1 (crew engineer) = 7
+      expect(screen.getByTestId('event-total')).toHaveTextContent('7')
     })
 
     it('displays the correct penalty type for resource penalties', () => {
@@ -713,7 +713,8 @@ describe('Phase 7: Events Integration', () => {
 
       // Renji has security: 3
       // Security event difficulty: 10
-      // Total: 6 + 3 = 9 < 10 (fail without cards)
+      // Crew has 1 security member: Jack
+      // Total: 6 + 3 + 1 = 10 >= 10 (success with crew bonus!)
 
       render(<App />)
 
@@ -722,11 +723,11 @@ describe('Phase 7: Events Integration', () => {
 
       expect(screen.getByTestId('event-stat-tested')).toHaveTextContent('security')
 
-      // Roll without cards - should fail
+      // Roll without cards - now succeeds due to crew bonus
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
       advanceDiceRollingAnimation()
 
-      expect(screen.getByTestId('event-result')).toHaveTextContent('Failed!')
+      expect(screen.getByTestId('event-result')).toHaveTextContent('Success!')
     })
 
     it('handles food events with food stat', () => {

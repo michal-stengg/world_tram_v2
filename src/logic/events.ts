@@ -6,6 +6,8 @@
 import { events } from '../data/events';
 import type { GameEvent } from '../data/events';
 import type { BonusCard } from '../data/cards';
+import type { CrewMember } from '../types';
+import { calculateCrewEventBonus } from './crew';
 
 /**
  * Result of resolving an event
@@ -44,13 +46,15 @@ export function selectRandomEvent(): GameEvent {
  * @param playedCards - Array of bonus cards played to help resolve the event
  * @param captainStats - The captain's stats (engineering, food, security)
  * @param diceRoll - The dice roll result
+ * @param crew - Optional crew members to calculate crew event bonus
  * @returns EventResult with success status, total score, and penalty if failed
  */
 export function resolveEvent(
   event: GameEvent,
   playedCards: BonusCard[],
   captainStats: { engineering: number; food: number; security: number },
-  diceRoll: number
+  diceRoll: number,
+  crew?: CrewMember[]
 ): EventResult {
   // Get the relevant captain stat based on the event's tested stat
   const captainStatValue = captainStats[event.statTested];
@@ -60,8 +64,11 @@ export function resolveEvent(
     .filter((card) => card.stat === event.statTested)
     .reduce((sum, card) => sum + card.bonus, 0);
 
-  // Calculate total: dice roll + captain stat + matching card bonuses
-  const total = diceRoll + captainStatValue + cardBonusTotal;
+  // Calculate crew bonus (each crew member with matching role adds +1)
+  const crewBonus = crew ? calculateCrewEventBonus(crew, event.statTested) : 0;
+
+  // Calculate total: dice roll + captain stat + matching card bonuses + crew bonus
+  const total = diceRoll + captainStatValue + cardBonusTotal + crewBonus;
 
   // Determine success
   const success = total >= event.difficulty;

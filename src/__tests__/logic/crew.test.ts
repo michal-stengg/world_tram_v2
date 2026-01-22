@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { cycleRole, calculateEngineerBonus, calculateSecurityBonus } from '../../logic/crew'
-import type { CrewRole } from '../../types'
+import { cycleRole, calculateEngineerBonus, calculateSecurityBonus, calculateCrewEventBonus } from '../../logic/crew'
+import type { CrewRole, CrewMember } from '../../types'
 
 describe('crew logic', () => {
   describe('cycleRole', () => {
@@ -113,6 +113,77 @@ describe('crew logic', () => {
     it('should never return below 0.40', () => {
       const result = calculateSecurityBonus(10)
       expect(result).toBeGreaterThanOrEqual(0.40)
+    })
+  })
+
+  describe('calculateCrewEventBonus', () => {
+    const createCrew = (roles: CrewRole[]): CrewMember[] => {
+      return roles.map((role, i) => ({
+        id: `crew-${i}`,
+        name: `Crew ${i}`,
+        role,
+        avatar: '👤',
+      }))
+    }
+
+    it('should return 0 with empty crew', () => {
+      const result = calculateCrewEventBonus([], 'engineering')
+      expect(result).toBe(0)
+    })
+
+    it('should return 0 when no crew match the stat', () => {
+      const crew = createCrew(['cook', 'cook', 'free'])
+      const result = calculateCrewEventBonus(crew, 'engineering')
+      expect(result).toBe(0)
+    })
+
+    it('should return 1 for one engineer on engineering event', () => {
+      const crew = createCrew(['engineer', 'cook', 'security'])
+      const result = calculateCrewEventBonus(crew, 'engineering')
+      expect(result).toBe(1)
+    })
+
+    it('should return 2 for two engineers on engineering event', () => {
+      const crew = createCrew(['engineer', 'engineer', 'cook', 'security'])
+      const result = calculateCrewEventBonus(crew, 'engineering')
+      expect(result).toBe(2)
+    })
+
+    it('should return 1 for one cook on food event', () => {
+      const crew = createCrew(['engineer', 'cook', 'security'])
+      const result = calculateCrewEventBonus(crew, 'food')
+      expect(result).toBe(1)
+    })
+
+    it('should return 3 for three cooks on food event', () => {
+      const crew = createCrew(['cook', 'cook', 'cook', 'security'])
+      const result = calculateCrewEventBonus(crew, 'food')
+      expect(result).toBe(3)
+    })
+
+    it('should return 1 for one security on security event', () => {
+      const crew = createCrew(['engineer', 'cook', 'security'])
+      const result = calculateCrewEventBonus(crew, 'security')
+      expect(result).toBe(1)
+    })
+
+    it('should return 2 for two security on security event', () => {
+      const crew = createCrew(['security', 'security', 'cook', 'engineer'])
+      const result = calculateCrewEventBonus(crew, 'security')
+      expect(result).toBe(2)
+    })
+
+    it('should not count free crew members', () => {
+      const crew = createCrew(['free', 'free', 'free', 'engineer'])
+      const result = calculateCrewEventBonus(crew, 'engineering')
+      expect(result).toBe(1)
+    })
+
+    it('should count only matching roles for the stat', () => {
+      const crew = createCrew(['engineer', 'engineer', 'cook', 'security'])
+      expect(calculateCrewEventBonus(crew, 'engineering')).toBe(2)
+      expect(calculateCrewEventBonus(crew, 'food')).toBe(1)
+      expect(calculateCrewEventBonus(crew, 'security')).toBe(1)
     })
   })
 })

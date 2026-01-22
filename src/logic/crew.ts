@@ -3,7 +3,7 @@
  */
 
 import { ENGINEER_FUEL_SAVINGS, SECURITY_PENALTY_REDUCTION } from '../data/constants'
-import type { CrewRole } from '../types'
+import type { CrewRole, CrewMember } from '../types'
 
 /**
  * Role cycle order: engineer -> cook -> security -> free -> engineer
@@ -46,4 +46,28 @@ export function calculateEngineerBonus(engineerCount: number): number {
 export function calculateSecurityBonus(securityCount: number): number {
   const validCount = Math.max(0, Math.min(4, securityCount))
   return Math.max(0, 1 - SECURITY_PENALTY_REDUCTION * validCount)
+}
+
+/**
+ * Calculate crew event bonus for a specific stat.
+ * Each crew member with a matching role adds +1 to event rolls.
+ * - engineer crew → +1 to engineering events
+ * - cook crew → +1 to food events
+ * - security crew → +1 to security events
+ *
+ * @param crew - The crew members
+ * @param stat - The event stat being tested (engineering, food, security)
+ * @returns The bonus from crew members matching the stat
+ */
+export function calculateCrewEventBonus(
+  crew: CrewMember[],
+  stat: 'engineering' | 'food' | 'security'
+): number {
+  const roleMap: Record<string, CrewRole> = {
+    engineering: 'engineer',
+    food: 'cook',
+    security: 'security',
+  }
+  const targetRole = roleMap[stat]
+  return crew.filter((c) => c.role === targetRole).length
 }

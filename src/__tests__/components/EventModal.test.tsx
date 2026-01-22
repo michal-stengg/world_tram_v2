@@ -4,6 +4,7 @@ import { EventModal } from '../../components/game/EventModal'
 import type { GameEvent } from '../../data/events'
 import type { BonusCard } from '../../data/cards'
 import type { EventResult } from '../../logic/events'
+import type { CrewMember, CrewRole } from '../../types'
 
 const mockEvent: GameEvent = {
   id: 'bandit-attack',
@@ -585,6 +586,203 @@ describe('EventModal', () => {
       expect(screen.getByTestId('card-hand')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /roll/i })).toBeInTheDocument()
       expect(screen.queryByTestId('dice-rolling')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('effective roll display', () => {
+    const captainStats = { engineering: 3, food: 2, security: 4 }
+
+    const createCrew = (roles: CrewRole[]): CrewMember[] => {
+      return roles.map((role, i) => ({
+        id: `crew-${i}`,
+        name: `Crew ${i}`,
+        role,
+        avatar: '👤',
+      }))
+    }
+
+    it('displays captain bonus when captainStats provided', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+        />
+      )
+      expect(screen.getByTestId('captain-bonus')).toHaveTextContent('+4 Captain')
+    })
+
+    it('calculates effective roll needed correctly with captain bonus only', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+        />
+      )
+      // Difficulty 10 - Captain security 4 = need 6
+      expect(screen.getByTestId('effective-roll')).toHaveTextContent('Need to Roll: 6+')
+    })
+
+    it('displays crew bonus when crew has matching roles', () => {
+      const crew = createCrew(['security', 'security', 'cook'])
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+          crew={crew}
+        />
+      )
+      expect(screen.getByTestId('crew-bonus')).toHaveTextContent('+2 Crew')
+    })
+
+    it('does not display crew bonus when no crew match', () => {
+      const crew = createCrew(['engineer', 'cook'])
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+          crew={crew}
+        />
+      )
+      expect(screen.queryByTestId('crew-bonus')).not.toBeInTheDocument()
+    })
+
+    it('calculates effective roll with captain and crew bonuses', () => {
+      const crew = createCrew(['security', 'security', 'cook'])
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+          crew={crew}
+        />
+      )
+      // Difficulty 10 - Captain security 4 - Crew security 2 = need 4
+      expect(screen.getByTestId('effective-roll')).toHaveTextContent('Need to Roll: 4+')
+    })
+
+    it('displays card bonus when matching cards are selected', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={['security-patrol']}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+        />
+      )
+      expect(screen.getByTestId('card-bonus')).toHaveTextContent('+3 Cards')
+    })
+
+    it('does not display card bonus when selected cards do not match stat', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={['quick-repairs']}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+        />
+      )
+      expect(screen.queryByTestId('card-bonus')).not.toBeInTheDocument()
+    })
+
+    it('calculates effective roll with all bonuses combined', () => {
+      const crew = createCrew(['security', 'cook'])
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={['security-patrol']}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+          crew={crew}
+        />
+      )
+      // Difficulty 10 - Captain security 4 - Crew security 1 - Card 3 = need 2
+      expect(screen.getByTestId('effective-roll')).toHaveTextContent('Need to Roll: 2+')
+    })
+
+    it('shows minimum effective roll of 1 when bonuses exceed difficulty', () => {
+      const highCaptain = { engineering: 5, food: 5, security: 8 }
+      const crew = createCrew(['security', 'security', 'security'])
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={['security-patrol']}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+          captainStats={highCaptain}
+          crew={crew}
+        />
+      )
+      // Difficulty 10 - Captain 8 - Crew 3 - Card 3 = -4, but minimum is 1
+      expect(screen.getByTestId('effective-roll')).toHaveTextContent('Need to Roll: 1+')
+    })
+
+    it('does not display bonuses section when captainStats not provided', () => {
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          onContinue={vi.fn()}
+        />
+      )
+      expect(screen.queryByTestId('event-bonuses')).not.toBeInTheDocument()
+    })
+
+    it('does not display bonuses section after result is shown', () => {
+      const successResult: EventResult = {
+        success: true,
+        total: 12,
+      }
+      render(
+        <EventModal
+          event={mockEvent}
+          cardHand={mockCards}
+          selectedCardIds={[]}
+          onSelectCard={vi.fn()}
+          onRoll={vi.fn()}
+          result={successResult}
+          onContinue={vi.fn()}
+          captainStats={captainStats}
+        />
+      )
+      expect(screen.queryByTestId('event-bonuses')).not.toBeInTheDocument()
     })
   })
 })

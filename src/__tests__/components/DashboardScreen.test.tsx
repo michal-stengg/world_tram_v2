@@ -294,9 +294,9 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete
+      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
       act(() => {
-        vi.advanceTimersByTime(1700)
+        vi.advanceTimersByTime(1900)
       })
 
       // Turn should be executed, incrementing turn count
@@ -309,9 +309,9 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete
+      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
       act(() => {
-        vi.advanceTimersByTime(1700)
+        vi.advanceTimersByTime(1900)
       })
 
       // If cargo discovery modal shows, dismiss it first
@@ -333,9 +333,9 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete
+      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
       act(() => {
-        vi.advanceTimersByTime(1700)
+        vi.advanceTimersByTime(1900)
       })
 
       // If cargo discovery modal shows, dismiss it first
@@ -364,9 +364,9 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete
+      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
       act(() => {
-        vi.advanceTimersByTime(1700)
+        vi.advanceTimersByTime(1900)
       })
 
       const newResources = useGameStore.getState().resources
@@ -386,9 +386,9 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete
+      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
       act(() => {
-        vi.advanceTimersByTime(1700)
+        vi.advanceTimersByTime(1900)
       })
 
       expect(useGameStore.getState().lastTurnResult).not.toBeNull()
@@ -735,7 +735,7 @@ describe('DashboardScreen', () => {
     // Helper to advance timers past dice rolling animation
     const advanceDiceRollingAnimation = () => {
       act(() => {
-        vi.advanceTimersByTime(1700) // 1000ms animation + buffer
+        vi.advanceTimersByTime(1900) // 1000ms animation + buffer
       })
     }
 
@@ -1105,7 +1105,7 @@ describe('DashboardScreen', () => {
       expect(screen.queryByTestId('station-modal')).not.toBeInTheDocument()
     })
 
-    it('closes StationShop and continues when StationShop closed', () => {
+    it('closes StationShop and returns to station modal', () => {
       act(() => {
         useGameStore.setState({
           lastTurnResult: mockTurnResultWithStation,
@@ -1119,11 +1119,15 @@ describe('DashboardScreen', () => {
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
       expect(screen.getByTestId('station-shop')).toBeInTheDocument()
 
-      // Close station shop
+      // Close station shop - returns to station modal so player can play minigames/quizzes
       fireEvent.click(screen.getByRole('button', { name: /close/i }))
 
-      // StationShop should be hidden, TurnResultDisplay should show
+      // StationShop should be hidden, station modal should show
       expect(screen.queryByTestId('station-shop')).not.toBeInTheDocument()
+      expect(screen.getByTestId('station-modal')).toBeInTheDocument()
+
+      // Dismiss station modal to see turn result
+      fireEvent.click(screen.getByRole('button', { name: /continue/i }))
       expect(screen.getByTestId('turn-result-display')).toBeInTheDocument()
     })
 

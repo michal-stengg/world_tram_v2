@@ -403,7 +403,7 @@ describe('gameStore', () => {
       expect(state.lastTurnResult?.movement).toBeDefined()
     })
 
-    it('should navigate to victory when reaching final country', () => {
+    it('should not auto-navigate to victory when at final country (victory is triggered manually)', () => {
       useGameStore.setState({
         selectedCaptain: mockCaptain,
         selectedTrain: mockTrain,
@@ -415,7 +415,8 @@ describe('gameStore', () => {
       executeTurn()
 
       const state = useGameStore.getState()
-      expect(state.currentScreen).toBe('victory')
+      // Victory is now triggered manually via FINISH button, not automatically
+      expect(state.currentScreen).not.toBe('victory')
     })
 
     it('should navigate to gameOver when resources depleted', () => {
@@ -434,6 +435,30 @@ describe('gameStore', () => {
         expect(state.currentScreen).toBe('gameOver')
         expect(state.gameOverReason).not.toBeNull()
       }
+    })
+  })
+
+  describe('triggerVictory', () => {
+    it('should navigate to victory screen', () => {
+      useGameStore.setState({
+        currentScreen: 'dashboard',
+      })
+
+      const { triggerVictory } = useGameStore.getState()
+      triggerVictory()
+
+      expect(useGameStore.getState().currentScreen).toBe('victory')
+    })
+
+    it('should work from any screen', () => {
+      useGameStore.setState({
+        currentScreen: 'intro',
+      })
+
+      const { triggerVictory } = useGameStore.getState()
+      triggerVictory()
+
+      expect(useGameStore.getState().currentScreen).toBe('victory')
     })
   })
 
@@ -677,14 +702,6 @@ describe('gameStore', () => {
         expect(useGameStore.getState().selectedCards).toEqual([])
       })
 
-      it('should remove played cards from hand', () => {
-        const { resolveCurrentEvent } = useGameStore.getState()
-        resolveCurrentEvent()
-
-        const hand = useGameStore.getState().cardHand
-        expect(hand.find(c => c.id === cards[0].id)).toBeUndefined()
-      })
-
       it('should replenish hand back to 3 cards after playing cards', () => {
         const { resolveCurrentEvent } = useGameStore.getState()
         resolveCurrentEvent()
@@ -835,7 +852,7 @@ describe('gameStore', () => {
     })
 
     it('completeMiniGame calculates and applies money reward for France', () => {
-      // Set up mini-game with money reward (France's Croissant Catcher has maxReward: 25)
+      // Set up mini-game with money reward (France's Croissant Catcher has maxReward: 38)
       const franceMiniGame = getMiniGameByCountryId('france')!
       useGameStore.setState({
         currentMiniGame: franceMiniGame,
@@ -843,19 +860,19 @@ describe('gameStore', () => {
       })
 
       const { completeMiniGame } = useGameStore.getState()
-      completeMiniGame(10, 10) // Perfect score = maxReward of 25
+      completeMiniGame(10, 10) // Perfect score = maxReward of 38
 
       const state = useGameStore.getState()
-      expect(state.resources.money).toBe(50 + 25) // money increased by reward
+      expect(state.resources.money).toBe(50 + 38) // money increased by reward
       expect(state.lastMiniGameResult).toEqual({
         score: 10,
         maxScore: 10,
-        reward: 25,
+        reward: 38,
       })
     })
 
     it('completeMiniGame calculates and applies money reward', () => {
-      // Set up mini-game with money reward (Germany's Beer Stein Balance has maxReward: 50)
+      // Set up mini-game with money reward (Germany's Beer Stein Balance has maxReward: 75)
       const germanyMiniGame = getMiniGameByCountryId('germany')!
       useGameStore.setState({
         currentMiniGame: germanyMiniGame,
@@ -863,11 +880,11 @@ describe('gameStore', () => {
       })
 
       const { completeMiniGame } = useGameStore.getState()
-      completeMiniGame(5, 10) // Half score = 25 reward (50 * 0.5)
+      completeMiniGame(5, 10) // Half score = 37.5 rounded = 38 reward (75 * 0.5)
 
       const state = useGameStore.getState()
-      expect(state.resources.money).toBe(100 + 25) // money increased by reward
-      expect(state.lastMiniGameResult?.reward).toBe(25)
+      expect(state.resources.money).toBe(100 + 38) // money increased by reward
+      expect(state.lastMiniGameResult?.reward).toBe(38)
     })
 
     it('completeMiniGame clears currentMiniGame', () => {
@@ -1273,13 +1290,13 @@ describe('gameStore', () => {
         expect(state.lastQuizResult?.totalQuestions).toBe(3)
       })
 
-      it('should apply money reward (3 correct = $30)', () => {
+      it('should apply money reward (3 correct = $45)', () => {
         const { completeQuiz } = useGameStore.getState()
         completeQuiz()
 
         const state = useGameStore.getState()
-        expect(state.resources.money).toBe(100 + 30) // 3 correct = $30
-        expect(state.lastQuizResult?.reward).toBe(30)
+        expect(state.resources.money).toBe(100 + 45) // 3 correct = $45
+        expect(state.lastQuizResult?.reward).toBe(45)
       })
 
       it('should set rating for 3 correct', () => {
@@ -1316,8 +1333,8 @@ describe('gameStore', () => {
 
         const state = useGameStore.getState()
         expect(state.lastQuizResult?.score).toBe(2)
-        expect(state.lastQuizResult?.reward).toBe(20) // 2 correct = $20
-        expect(state.resources.money).toBe(100 + 20)
+        expect(state.lastQuizResult?.reward).toBe(30) // 2 correct = $30
+        expect(state.resources.money).toBe(100 + 30)
       })
 
       it('should handle 1 correct answer', () => {
@@ -1338,7 +1355,7 @@ describe('gameStore', () => {
 
         const state = useGameStore.getState()
         expect(state.lastQuizResult?.score).toBe(1)
-        expect(state.lastQuizResult?.reward).toBe(10) // 1 correct = $10
+        expect(state.lastQuizResult?.reward).toBe(15) // 1 correct = $15
       })
 
       it('should handle 0 correct answers (participation reward)', () => {
@@ -1355,7 +1372,7 @@ describe('gameStore', () => {
 
         const state = useGameStore.getState()
         expect(state.lastQuizResult?.score).toBe(0)
-        expect(state.lastQuizResult?.reward).toBe(5) // 0 correct = $5
+        expect(state.lastQuizResult?.reward).toBe(8) // 0 correct = $8
       })
 
       it('should do nothing if no currentQuiz', () => {

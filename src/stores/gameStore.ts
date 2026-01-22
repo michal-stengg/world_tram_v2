@@ -65,6 +65,7 @@ interface GameActions {
   resetSelection: () => void
   initializeGame: () => void
   executeTurn: () => void
+  triggerVictory: () => void
   clearTurnResult: () => void
   cycleCrewRole: (crewMemberId: string) => void
   // Card actions
@@ -227,16 +228,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lastTurnResult: result,
     })
 
-    // Handle game end navigation
-    if (result.gameStatus === 'victory') {
-      set({ currentScreen: 'victory' })
-    } else if (result.gameStatus === 'gameOver') {
+    // Handle game end navigation (only game over - victory is triggered manually)
+    if (result.gameStatus === 'gameOver') {
       set({
         currentScreen: 'gameOver',
         gameOverReason: result.gameOverReason ?? null,
       })
     }
   },
+
+  triggerVictory: () => set({ currentScreen: 'victory' }),
 
   clearTurnResult: () => set({ lastTurnResult: null }),
 

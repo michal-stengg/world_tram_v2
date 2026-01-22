@@ -107,9 +107,13 @@ export function DashboardScreen() {
   const selectedCaptain = useGameStore((state) => state.selectedCaptain)
   const selectedTrain = useGameStore((state) => state.selectedTrain)
   const executeTurn = useGameStore((state) => state.executeTurn)
+  const triggerVictory = useGameStore((state) => state.triggerVictory)
   const clearTurnResult = useGameStore((state) => state.clearTurnResult)
   const lastTurnResult = useGameStore((state) => state.lastTurnResult)
   const currentCountryIndex = useGameStore((state) => state.currentCountryIndex)
+
+  // Check if player is at the final destination (USA, index 9)
+  const isAtFinalDestination = currentCountryIndex === 9
 
   // Event-related store state
   const currentEvent = useGameStore((state) => state.currentEvent)
@@ -181,36 +185,38 @@ export function DashboardScreen() {
   const [showFinalRoll, setShowFinalRoll] = useState(false)
 
   // When a new turn result comes in with an event, set it in the store
+  // Wait for dice roll to finish before showing event modal
   useEffect(() => {
-    if (lastTurnResult?.eventTriggered && lastTurnResult.event) {
+    if (lastTurnResult?.eventTriggered && lastTurnResult.event && !isTurnRolling) {
       setCurrentEvent(lastTurnResult.event)
       // Reset event result for new event - intentional state update in effect
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setEventResult(undefined)
     }
-  }, [lastTurnResult, setCurrentEvent])
+  }, [lastTurnResult, setCurrentEvent, isTurnRolling])
 
   // When turn result has cargo discovered, show the modal (after event is resolved)
+  // Wait for dice roll to finish before showing cargo discovery modal
   useEffect(() => {
-    if (lastTurnResult?.cargoDiscovered && !currentEvent) {
+    if (lastTurnResult?.cargoDiscovered && !currentEvent && !isTurnRolling) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setDiscoveredCargo(lastTurnResult.cargoDiscovered)
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowCargoDiscovery(true)
     }
-  }, [lastTurnResult, currentEvent])
+  }, [lastTurnResult, currentEvent, isTurnRolling])
 
   // When a new turn result comes in with a stationReward and no event pending, show the station modal
-  // But wait for cargo discovery modal to be dismissed first
+  // But wait for dice roll and cargo discovery modal to be dismissed first
   useEffect(() => {
-    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing' && !currentEvent && !showCargoDiscovery) {
+    if (lastTurnResult?.stationReward && lastTurnResult.gameStatus === 'playing' && !currentEvent && !showCargoDiscovery && !isTurnRolling) {
       // Show station modal after event and cargo discovery are resolved - intentional state update in effect
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowStationModal(true)
-    } else if (!currentEvent && !showCargoDiscovery) {
+    } else if (!currentEvent && !showCargoDiscovery && !isTurnRolling) {
       setShowStationModal(false)
     }
-  }, [lastTurnResult, currentEvent, showCargoDiscovery])
+  }, [lastTurnResult, currentEvent, showCargoDiscovery, isTurnRolling])
 
   // Animate turn dice while rolling (but not when showing final result)
   useEffect(() => {
@@ -266,6 +272,11 @@ export function DashboardScreen() {
 
   const handleDismissStationModal = () => {
     setShowStationModal(false)
+  }
+
+  const handleFinish = () => {
+    setShowStationModal(false)
+    triggerVictory()
   }
 
   const handleVisitShop = () => {
@@ -537,7 +548,7 @@ export function DashboardScreen() {
       </AnimatePresence>
 
       {/* Event Modal - shows when an event is triggered (before station/turn result) */}
-      {currentEvent && (
+      {currentEvent && !isTurnRolling && (
         <EventModal
           event={currentEvent}
           cardHand={cardHand}
@@ -554,7 +565,7 @@ export function DashboardScreen() {
       )}
 
       {/* Cargo Discovery Modal - shows when cargo is found during travel (after event resolved) */}
-      {showCargoDiscovery && discoveredCargo && (
+      {showCargoDiscovery && discoveredCargo && !isTurnRolling && (
         <CargoDiscoveryModal
           cargoItem={discoveredCargo}
           onContinue={handleCargoDiscoveryContinue}
@@ -562,7 +573,7 @@ export function DashboardScreen() {
       )}
 
       {/* Cargo Open Modal - shows at station when player has cargo (before station modal) */}
-      {pendingCargoOpen && currentCargoReward && (
+      {pendingCargoOpen && currentCargoReward && !isTurnRolling && (
         <CargoOpenModal
           cargoItem={pendingCargoOpen}
           reward={currentCargoReward}
@@ -571,16 +582,18 @@ export function DashboardScreen() {
       )}
 
       {/* Station Modal - shows when arriving at a new country (after event and cargo opening are resolved) */}
-      {!currentEvent && !showCargoDiscovery && !pendingCargoOpen && showStationModal && lastTurnResult?.stationReward && !currentMiniGame && !currentQuiz && (
+      {!currentEvent && !showCargoDiscovery && !pendingCargoOpen && showStationModal && lastTurnResult?.stationReward && !currentMiniGame && !currentQuiz && !isTurnRolling && (
         <StationModal
           country={countries[currentCountryIndex]}
           reward={lastTurnResult.stationReward}
           onContinue={handleDismissStationModal}
-          onVisitShop={handleVisitShop}
+          onVisitShop={isAtFinalDestination ? undefined : handleVisitShop}
           onPlayMiniGame={handlePlayMiniGame}
           onTakeQuiz={handleTakeQuiz}
           miniGamePlayed={playedMiniGames.has(countries[currentCountryIndex].id)}
           quizTaken={takenQuizzes.has(countries[currentCountryIndex].id)}
+          isAtFinalDestination={isAtFinalDestination}
+          onFinish={isAtFinalDestination ? handleFinish : undefined}
         />
       )}
 
@@ -624,7 +637,7 @@ export function DashboardScreen() {
       })()}
 
       {/* Turn Result Modal - shows after station modal is dismissed (or immediately if no station) */}
-      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !showCartShop && !currentEvent && !showCargoDiscovery && !pendingCargoOpen && !currentMiniGame && !showQuizModal && (
+      {lastTurnResult && lastTurnResult.gameStatus === 'playing' && !showStationModal && !showCartShop && !currentEvent && !showCargoDiscovery && !pendingCargoOpen && !currentMiniGame && !showQuizModal && !isTurnRolling && (
         <TurnResultDisplay
           result={lastTurnResult}
           onDismiss={handleDismissTurnResult}

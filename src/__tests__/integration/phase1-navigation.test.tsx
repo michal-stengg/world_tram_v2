@@ -45,19 +45,36 @@ describe('Phase 1 Navigation Flow', () => {
       expect(screen.getByTestId('dashboard-screen')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /go/i })).toBeInTheDocument()
 
-      // 5. Click GO button -> executes turn and shows turn result
-      // First, set state to near victory so one turn wins
+      // 5. Simulate arriving at final destination (USA)
+      // Victory is now triggered manually via FINISH button at the station modal
+      // Set state to be at final destination with a station reward (simulating arrival)
       act(() => {
         useGameStore.setState({
-          currentCountryIndex: 9, // Already at final country
+          currentCountryIndex: 9, // At USA (final destination)
+          lastTurnResult: {
+            diceRoll: 6,
+            movement: 8,
+            resourceChanges: { food: -5, fuel: -10, water: -5, money: 0 },
+            newResources: { food: 50, fuel: 100, water: 50, money: 200 },
+            newCountryIndex: 9,
+            newProgress: 0,
+            arrivedAtCountry: true,
+            gameStatus: 'playing',
+            newTurnCount: 10,
+            stationReward: { waterRefill: 30, moneyEarned: 50 },
+            eventTriggered: false,
+          },
         })
       })
 
-      const goButton = screen.getByRole('button', { name: /go/i })
-      fireEvent.click(goButton)
-      act(() => { vi.advanceTimersByTime(1900) })
+      // Wait for state to propagate and modal to show
+      act(() => { vi.advanceTimersByTime(100) })
 
-      // Should navigate to victory screen after turn processing
+      // At final destination (USA), the station modal should show FINISH button
+      const finishButton = screen.getByRole('button', { name: /FINISH/i })
+      fireEvent.click(finishButton)
+
+      // Should navigate to victory screen after clicking FINISH
       expect(screen.getByText('VICTORY!')).toBeInTheDocument()
       expect(screen.getByTestId('victory-screen')).toBeInTheDocument()
 

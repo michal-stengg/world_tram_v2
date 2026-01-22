@@ -302,6 +302,101 @@ describe('StationModal', () => {
     })
   })
 
+  describe('final destination FINISH button', () => {
+    it('renders FINISH button when isAtFinalDestination is true and onFinish provided', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          isAtFinalDestination={true}
+          onFinish={vi.fn()}
+        />
+      )
+
+      expect(screen.getByRole('button', { name: /FINISH/i })).toBeInTheDocument()
+    })
+
+    it('does not render Visit Shop button when at final destination', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onVisitShop={vi.fn()}
+          isAtFinalDestination={true}
+          onFinish={vi.fn()}
+        />
+      )
+
+      // FINISH button should be shown instead of Visit Shop
+      expect(screen.queryByRole('button', { name: /visit shop/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /FINISH/i })).toBeInTheDocument()
+    })
+
+    it('calls onFinish when FINISH button clicked', () => {
+      const onFinish = vi.fn()
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          isAtFinalDestination={true}
+          onFinish={onFinish}
+        />
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: /FINISH/i }))
+
+      expect(onFinish).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows Visit Shop button when not at final destination', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onVisitShop={vi.fn()}
+          isAtFinalDestination={false}
+        />
+      )
+
+      expect(screen.getByRole('button', { name: /visit shop/i })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /FINISH/i })).not.toBeInTheDocument()
+    })
+
+    it('mini-game button still appears at final destination', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onPlayMiniGame={vi.fn()}
+          isAtFinalDestination={true}
+          onFinish={vi.fn()}
+        />
+      )
+
+      expect(screen.getByRole('button', { name: /play mini-game/i })).toBeInTheDocument()
+    })
+
+    it('quiz button still appears at final destination', () => {
+      render(
+        <StationModal
+          country={mockCountry}
+          reward={mockReward}
+          onContinue={vi.fn()}
+          onTakeQuiz={vi.fn()}
+          isAtFinalDestination={true}
+          onFinish={vi.fn()}
+        />
+      )
+
+      expect(screen.getByRole('button', { name: /take quiz/i })).toBeInTheDocument()
+    })
+  })
+
   describe('activity tracking', () => {
     it('should show "Played" when miniGamePlayed is true', () => {
       render(

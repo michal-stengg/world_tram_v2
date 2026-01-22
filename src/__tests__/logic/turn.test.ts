@@ -173,7 +173,7 @@ describe('turn processor', () => {
       expect(result.newTurnCount).toBe(6)
     })
 
-    it('should detect victory when reaching final country', () => {
+    it('should NOT auto-trigger victory when reaching final country (victory triggered via FINISH button)', () => {
       const state = createGameState({
         currentCountryIndex: 8, // Second to last
         progressInCountry: 5,
@@ -182,7 +182,8 @@ describe('turn processor', () => {
 
       // Movement 8 + progress 5 = 13, should reach country 9 (final)
       expect(result.newCountryIndex).toBe(9)
-      expect(result.gameStatus).toBe('victory')
+      // Victory is now triggered manually via FINISH button, not automatically
+      expect(result.gameStatus).toBe('playing')
     })
 
     it('should detect game over when resources depleted', () => {
@@ -274,16 +275,15 @@ describe('turn processor', () => {
         })
         const result = processTurn(state)
 
-        // Resource changes should NOT include station rewards (they're separate)
-        // But newResources SHOULD include station rewards
+        // resourceChanges.money now includes both wages and station reward
+        // So newResources.money = startingMoney + resourceChanges.money
         expect(result.arrivedAtCountry).toBe(true)
 
         // Calculate expected final money:
         // Starting: 200, wages: -(4 crew * 5 base) = -20, station: +25
-        // Net: 200 - 20 + 25 = 205
-        const expectedMoneyAfterWages = 200 + result.resourceChanges.money
-        const expectedFinalMoney = expectedMoneyAfterWages + result.stationReward!.moneyEarned
-        expect(result.newResources.money).toBe(expectedFinalMoney)
+        // resourceChanges.money = -20 + 25 = +5
+        // Net: 200 + 5 = 205
+        expect(result.newResources.money).toBe(200 + result.resourceChanges.money)
       })
     })
 

@@ -9,7 +9,7 @@ import {
   getCrewCountByRole,
   applyResourceChanges,
 } from './resources'
-import { checkVictory, checkGameOver } from './conditions'
+import { checkGameOver } from './conditions'
 import type { GameOverReason } from './conditions'
 import { processStationArrival } from './station'
 import type { StationReward } from './station'
@@ -102,6 +102,9 @@ export function processTurn(state: GameState): TurnResult {
       water: newResources.water + stationReward.waterRefill,
       money: newResources.money + stationReward.moneyEarned,
     }
+    // Update resourceChanges to include station rewards for accurate display
+    resourceChanges.water += stationReward.waterRefill
+    resourceChanges.money += stationReward.moneyEarned
   }
 
   // 9. Increment turn count
@@ -121,16 +124,12 @@ export function processTurn(state: GameState): TurnResult {
   let gameStatus: GameStatus = 'playing'
   let gameOverReason: GameOverReason | undefined
 
-  // Check victory first
-  if (checkVictory(advanceResult.newCountryIndex, countries.length)) {
-    gameStatus = 'victory'
-  } else {
-    // Check game over
-    const gameOverResult = checkGameOver(newResources)
-    if (gameOverResult.isGameOver) {
-      gameStatus = 'gameOver'
-      gameOverReason = gameOverResult.reason ?? undefined
-    }
+  // Victory is now triggered manually via FINISH button at final destination
+  // Only check for game over conditions here
+  const gameOverResult = checkGameOver(newResources)
+  if (gameOverResult.isGameOver) {
+    gameStatus = 'gameOver'
+    gameOverReason = gameOverResult.reason ?? undefined
   }
 
   return {

@@ -247,23 +247,23 @@ describe('Phase 11: Country Quiz Integration', () => {
   })
 
   describe('Quiz Completion - Score Calculation', () => {
-    test('3/3 correct gives reward = $30 and rating = "Quiz Master"', () => {
-      expect(calculateQuizReward(3)).toBe(30)
+    test('3/3 correct gives reward = $45 and rating = "Quiz Master"', () => {
+      expect(calculateQuizReward(3)).toBe(45)
       expect(getQuizRating(3)).toContain('Quiz Master')
     })
 
-    test('2/3 correct gives reward = $20 and rating = "Great Job"', () => {
-      expect(calculateQuizReward(2)).toBe(20)
+    test('2/3 correct gives reward = $30 and rating = "Great Job"', () => {
+      expect(calculateQuizReward(2)).toBe(30)
       expect(getQuizRating(2)).toContain('Great Job')
     })
 
-    test('1/3 correct gives reward = $10 and rating = "Good Try"', () => {
-      expect(calculateQuizReward(1)).toBe(10)
+    test('1/3 correct gives reward = $15 and rating = "Good Try"', () => {
+      expect(calculateQuizReward(1)).toBe(15)
       expect(getQuizRating(1)).toContain('Good Try')
     })
 
-    test('0/3 correct gives reward = $5 and rating = "Keep Learning"', () => {
-      expect(calculateQuizReward(0)).toBe(5)
+    test('0/3 correct gives reward = $8 and rating = "Keep Learning"', () => {
+      expect(calculateQuizReward(0)).toBe(8)
       expect(getQuizRating(0)).toContain('Keep Learning')
     })
 
@@ -289,7 +289,7 @@ describe('Phase 11: Country Quiz Integration', () => {
       const { lastQuizResult } = useGameStore.getState()
       expect(lastQuizResult).not.toBeNull()
       expect(lastQuizResult!.score).toBe(3)
-      expect(lastQuizResult!.reward).toBe(30)
+      expect(lastQuizResult!.reward).toBe(45)
       expect(lastQuizResult!.rating).toContain('Quiz Master')
     })
 
@@ -318,7 +318,7 @@ describe('Phase 11: Country Quiz Integration', () => {
 
       const { lastQuizResult } = useGameStore.getState()
       expect(lastQuizResult!.score).toBe(2)
-      expect(lastQuizResult!.reward).toBe(20)
+      expect(lastQuizResult!.reward).toBe(30)
     })
 
     test('completeQuiz calculates score correctly with 1 correct answer', () => {
@@ -346,7 +346,7 @@ describe('Phase 11: Country Quiz Integration', () => {
 
       const { lastQuizResult } = useGameStore.getState()
       expect(lastQuizResult!.score).toBe(1)
-      expect(lastQuizResult!.reward).toBe(10)
+      expect(lastQuizResult!.reward).toBe(15)
     })
 
     test('completeQuiz calculates score correctly with 0 correct answers', () => {
@@ -370,7 +370,7 @@ describe('Phase 11: Country Quiz Integration', () => {
 
       const { lastQuizResult } = useGameStore.getState()
       expect(lastQuizResult!.score).toBe(0)
-      expect(lastQuizResult!.reward).toBe(5)
+      expect(lastQuizResult!.reward).toBe(8)
       expect(lastQuizResult!.rating).toContain('Keep Learning')
     })
   })
@@ -386,7 +386,7 @@ describe('Phase 11: Country Quiz Integration', () => {
 
       const { currentQuiz } = useGameStore.getState()
 
-      // Answer all correctly for max reward of $30 using actual quiz questions
+      // Answer all correctly for max reward of $45 using actual quiz questions
       currentQuiz!.questions.forEach((q) => {
         act(() => {
           answerQuestion(q.id, q.correctAnswer)
@@ -397,7 +397,7 @@ describe('Phase 11: Country Quiz Integration', () => {
       })
 
       const { resources } = useGameStore.getState()
-      expect(resources.money).toBe(initialMoney + 30)
+      expect(resources.money).toBe(initialMoney + 45)
     })
 
     test('initial money + reward = new money', () => {
@@ -416,7 +416,7 @@ describe('Phase 11: Country Quiz Integration', () => {
 
       const { currentQuiz } = useGameStore.getState()
 
-      // Answer 2 correctly for $20 reward using actual quiz questions
+      // Answer 2 correctly for $30 reward using actual quiz questions
       currentQuiz!.questions.forEach((q, idx) => {
         act(() => {
           if (idx < 2) {
@@ -431,7 +431,7 @@ describe('Phase 11: Country Quiz Integration', () => {
       })
 
       const { resources } = useGameStore.getState()
-      expect(resources.money).toBe(100 + 20)
+      expect(resources.money).toBe(100 + 30)
     })
 
     test('lastQuizResult is set correctly after completion', () => {
@@ -457,7 +457,7 @@ describe('Phase 11: Country Quiz Integration', () => {
       expect(lastQuizResult).not.toBeNull()
       expect(lastQuizResult!.score).toBe(3)
       expect(lastQuizResult!.totalQuestions).toBe(3)
-      expect(lastQuizResult!.reward).toBe(30)
+      expect(lastQuizResult!.reward).toBe(45)
       expect(lastQuizResult!.rating).toContain('Quiz Master')
     })
 

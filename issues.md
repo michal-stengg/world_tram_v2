@@ -1417,6 +1417,17 @@
 
 ---
 
+## UI.1.3 Reduce Country/Train Icon Size
+
+### UI.1.3.1 Make Icons 25% Smaller
+- [x] Reduce country logos and train icon size by 25%
+  - File: `src/components/game/JourneyTrack.tsx`
+  - File: `src/components/game/CountryMarker.tsx`
+  - Change icon sizes from current to 75% of original
+  - Depends: none
+
+---
+
 ## UI.2 Dice Animation Duration
 
 ### UI.2.1 Reduce Dice Animation
@@ -1660,6 +1671,42 @@
   - Command: `npm run build`
   - Result: Build successful
   - Depends: ECON.7.1
+
+---
+
+# Victory Screen Enhancement
+
+> **Goal:** Improve victory screen with game statistics and performance rating.
+> **Testable Outcome:** Victory screen shows final resources, crew summary, carts owned, and star rating based on turn count.
+
+---
+
+## VIC.1 Performance Rating Logic
+
+### VIC.1.1 Rating Calculation
+- [x] Create performance rating logic
+  - File: `src/logic/rating.ts` (new)
+  - Tests: `src/__tests__/logic/rating.test.ts` (new)
+  - Functions:
+    - `calculateRating(turnCount): { stars: number, title: string }`
+    - Rating tiers: ≤15 turns = 3 stars "Express Master", ≤25 = 2 stars "Skilled Conductor", >25 = 1 star "Journey Complete"
+  - Depends: none
+
+---
+
+## VIC.2 Victory Screen UI
+
+### VIC.2.1 Game Statistics Display
+- [x] Update VictoryScreen with statistics and rating
+  - File: `src/components/screens/VictoryScreen.tsx` (update)
+  - Tests: `src/__tests__/components/VictoryScreen.test.tsx` (update)
+  - Shows:
+    - Star rating (1-3 stars) with title
+    - Final resources (food, fuel, water, money)
+    - Crew summary (role counts)
+    - Carts owned count
+    - Captain and train used
+  - Depends: VIC.1.1
 
 ---
 

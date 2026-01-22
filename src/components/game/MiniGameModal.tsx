@@ -32,8 +32,8 @@ const containerStyle: React.CSSProperties = {
   border: '4px solid var(--color-gold, #F7B538)',
   borderRadius: '8px',
   padding: '1.5rem',
-  minWidth: '350px',
-  maxWidth: '450px',
+  minWidth: '480px',
+  maxWidth: '550px',
   textAlign: 'center',
 }
 

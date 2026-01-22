@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { carts } from '../../data/carts'
 import { canPurchaseCart } from '../../logic/carts'
 import { calculateCartTotal } from '../../logic/shop'
@@ -31,11 +32,23 @@ export function StationShop({
   onPurchaseResources,
   onClose,
 }: StationShopProps) {
+  const [showInsufficientFunds, setShowInsufficientFunds] = useState(false)
+  const [failedCartPrice, setFailedCartPrice] = useState(0)
+
   const resourceTotal = calculateCartTotal(shopCart, prices)
   const canAffordResources = resourceTotal <= money && resourceTotal > 0
 
   const isCartOwned = (cartId: string) => ownedCarts.some(c => c.id === cartId)
   const canAffordCart = (cart: Cart) => canPurchaseCart(cart, money)
+
+  const handleCartPurchase = (cart: Cart) => {
+    if (!canAffordCart(cart)) {
+      setFailedCartPrice(cart.price)
+      setShowInsufficientFunds(true)
+      return
+    }
+    onPurchaseCart(cart.id)
+  }
 
   // Calculate max purchasable for each resource
   const getMaxPurchasable = (resource: 'food' | 'fuel' | 'water') => {
@@ -225,10 +238,10 @@ export function StationShop({
                     <div style={priceStyle}>${cart.price}</div>
                   </div>
                   <PixelButton
-                    onClick={() => onPurchaseCart(cart.id)}
-                    disabled={!canBuy}
+                    onClick={() => handleCartPurchase(cart)}
+                    disabled={owned}
                     size="small"
-                    variant={owned ? 'secondary' : 'gold'}
+                    variant={owned ? 'secondary' : canBuy ? 'gold' : 'secondary'}
                   >
                     {owned ? 'Owned' : 'Buy'}
                   </PixelButton>
@@ -309,6 +322,52 @@ export function StationShop({
             </div>
           </div>
         </div>
+
+        {/* Insufficient Funds Popup */}
+        {showInsufficientFunds && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              backgroundColor: 'rgba(0, 0, 0, 0.98)',
+              border: '4px solid #e74c3c',
+              borderRadius: '12px',
+              padding: '2rem',
+              zIndex: 1100,
+              textAlign: 'center',
+              minWidth: '300px',
+            }}
+            data-testid="insufficient-funds-popup"
+          >
+            <div style={{ fontSize: '4rem', marginBottom: '0.5rem' }}>
+              🙅‍♂️
+            </div>
+            <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>
+              💸💸💸
+            </div>
+            <div style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: '#e74c3c',
+              marginBottom: '1rem',
+            }}>
+              Insufficient Funds!
+            </div>
+            <div style={{ marginBottom: '1rem', color: '#aaa' }}>
+              You need <span style={{ color: '#f1c40f', fontWeight: 'bold' }}>${failedCartPrice}</span>
+              <br />
+              You have <span style={{ color: '#f1c40f', fontWeight: 'bold' }}>${money}</span>
+            </div>
+            <PixelButton
+              onClick={() => setShowInsufficientFunds(false)}
+              variant="secondary"
+            >
+              OK
+            </PixelButton>
+          </div>
+        )}
       </div>
     </>
   )

@@ -3,20 +3,20 @@ import { calculateQuizReward, getQuizRating } from '../../logic/quizzes';
 
 describe('quizzes logic', () => {
   describe('calculateQuizReward', () => {
-    it('returns 30 for 3 correct answers', () => {
-      expect(calculateQuizReward(3)).toBe(30);
+    it('returns 45 for 3 correct answers', () => {
+      expect(calculateQuizReward(3)).toBe(45);
     });
 
-    it('returns 20 for 2 correct answers', () => {
-      expect(calculateQuizReward(2)).toBe(20);
+    it('returns 30 for 2 correct answers', () => {
+      expect(calculateQuizReward(2)).toBe(30);
     });
 
-    it('returns 10 for 1 correct answer', () => {
-      expect(calculateQuizReward(1)).toBe(10);
+    it('returns 15 for 1 correct answer', () => {
+      expect(calculateQuizReward(1)).toBe(15);
     });
 
-    it('returns 5 for 0 correct answers (participation reward)', () => {
-      expect(calculateQuizReward(0)).toBe(5);
+    it('returns 8 for 0 correct answers (participation reward)', () => {
+      expect(calculateQuizReward(0)).toBe(8);
     });
   });
 

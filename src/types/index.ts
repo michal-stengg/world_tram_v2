@@ -151,6 +151,7 @@ export interface QuizQuestion {
   options: string[];          // array of 4 answer choices
   correctAnswer: string;      // the correct answer text
   funFact: string;            // interesting fact shown after answering
+  imageUrl?: string;          // path to image in public folder (shown in feedback)
 }
 
 // Country quiz definition
@@ -189,3 +190,6 @@ export interface CountryPrices {
   prices: ResourcePrices;
   theme: string;  // flavor text like "French Market"
 }
+
+// Re-export leaderboard types
+export * from './leaderboard'

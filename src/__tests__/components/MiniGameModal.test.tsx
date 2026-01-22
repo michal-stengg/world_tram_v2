@@ -85,9 +85,9 @@ describe('MiniGameModal', () => {
       const startButton = screen.getByRole('button', { name: /start/i })
       fireEvent.click(startButton)
 
-      // Advance time by 15 seconds (game duration for CatcherGame)
+      // Advance time by 20 seconds (game duration for CatcherGame)
       act(() => {
-        vi.advanceTimersByTime(15000)
+        vi.advanceTimersByTime(20000)
       })
 
       // Results screen should be visible
@@ -107,9 +107,9 @@ describe('MiniGameModal', () => {
       const startButton = screen.getByRole('button', { name: /start/i })
       fireEvent.click(startButton)
 
-      // Advance time by 15 seconds
+      // Advance time by 20 seconds
       act(() => {
-        vi.advanceTimersByTime(15000)
+        vi.advanceTimersByTime(20000)
       })
 
       // Score should be displayed
@@ -132,9 +132,9 @@ describe('MiniGameModal', () => {
       const startButton = screen.getByRole('button', { name: /start/i })
       fireEvent.click(startButton)
 
-      // Advance time by 15 seconds
+      // Advance time by 20 seconds
       act(() => {
-        vi.advanceTimersByTime(15000)
+        vi.advanceTimersByTime(20000)
       })
 
       // Click Collect Reward button

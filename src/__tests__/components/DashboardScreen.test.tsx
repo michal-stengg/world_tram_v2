@@ -294,7 +294,7 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
+      // Wait for dice animation to complete (800ms animation + 2000ms hold + buffer)
       act(() => {
         vi.advanceTimersByTime(1900)
       })
@@ -309,7 +309,7 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
+      // Wait for dice animation to complete (800ms animation + 2000ms hold + buffer)
       act(() => {
         vi.advanceTimersByTime(1900)
       })
@@ -333,7 +333,7 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
+      // Wait for dice animation to complete (800ms animation + 2000ms hold + buffer)
       act(() => {
         vi.advanceTimersByTime(1900)
       })
@@ -364,7 +364,7 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
+      // Wait for dice animation to complete (800ms animation + 2000ms hold + buffer)
       act(() => {
         vi.advanceTimersByTime(1900)
       })
@@ -386,7 +386,7 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
-      // Wait for dice animation to complete (800ms animation + 1000ms hold + buffer)
+      // Wait for dice animation to complete (800ms animation + 2000ms hold + buffer)
       act(() => {
         vi.advanceTimersByTime(1900)
       })
@@ -735,7 +735,7 @@ describe('DashboardScreen', () => {
     // Helper to advance timers past dice rolling animation
     const advanceDiceRollingAnimation = () => {
       act(() => {
-        vi.advanceTimersByTime(1900) // 1000ms animation + buffer
+        vi.advanceTimersByTime(1900) // 800ms animation + 2000ms hold + buffer
       })
     }
 

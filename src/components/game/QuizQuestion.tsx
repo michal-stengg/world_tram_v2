@@ -86,6 +86,24 @@ const funFactStyle: React.CSSProperties = {
   marginTop: '0.5rem',
 }
 
+const imageContainerStyle: React.CSSProperties = {
+  maxWidth: '300px',
+  maxHeight: '250px',
+  margin: '0 auto',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#0d0d1a',
+  borderRadius: '8px',
+  overflow: 'hidden',
+}
+
+const imageStyle: React.CSSProperties = {
+  maxWidth: '300px',
+  maxHeight: '250px',
+  objectFit: 'contain',
+}
+
 export function QuizQuestion({
   question,
   selectedAnswer,
@@ -129,6 +147,17 @@ export function QuizQuestion({
           )
         })}
       </div>
+
+      {showResult && question.imageUrl && (
+        <div style={imageContainerStyle}>
+          <img
+            src={question.imageUrl}
+            alt={question.correctAnswer}
+            style={imageStyle}
+            data-testid="quiz-image"
+          />
+        </div>
+      )}
 
       {showResult && (
         <div style={funFactStyle} data-testid="fun-fact">

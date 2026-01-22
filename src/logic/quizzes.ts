@@ -4,16 +4,16 @@
  * @returns Money reward amount
  */
 export function calculateQuizReward(correctCount: number): number {
-  // 3/3 = $30, 2/3 = $20, 1/3 = $10, 0/3 = $5 (participation)
+  // 3/3 = $45, 2/3 = $30, 1/3 = $15, 0/3 = $8 (participation) - increased by 50%
   switch (correctCount) {
     case 3:
-      return 30;
+      return 45;
     case 2:
-      return 20;
+      return 30;
     case 1:
-      return 10;
+      return 15;
     default:
-      return 5;
+      return 8;
   }
 }
 

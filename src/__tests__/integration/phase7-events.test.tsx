@@ -145,7 +145,7 @@ describe('Phase 7: Events Integration', () => {
   // Helper to advance timers past dice rolling animation
   const advanceDiceRollingAnimation = () => {
     act(() => {
-      vi.advanceTimersByTime(1900) // 1000ms animation + buffer
+      vi.advanceTimersByTime(1900) // 800ms animation + 1000ms hold + buffer
     })
   }
 

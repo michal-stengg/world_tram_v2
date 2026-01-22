@@ -18,7 +18,15 @@ const countryStyle: React.CSSProperties = {
 }
 
 const arrowStyle: React.CSSProperties = {
-  margin: '0 0.5rem',
+  margin: '0 0.25rem',
+  color: 'var(--color-gold, #F7B538)',
+}
+
+const distanceStyle: React.CSSProperties = {
+  backgroundColor: 'rgba(247, 181, 56, 0.2)',
+  padding: '0.15rem 0.5rem',
+  borderRadius: '4px',
+  fontWeight: 'bold',
   color: 'var(--color-gold, #F7B538)',
 }
 
@@ -30,10 +38,12 @@ const finalDestinationStyle: React.CSSProperties = {
 
 export function LocationIndicator() {
   const currentCountryIndex = useGameStore((state) => state.currentCountryIndex)
+  const progressInCountry = useGameStore((state) => state.progressInCountry)
 
   const currentCountry = countries[currentCountryIndex]
   const isAtFinalDestination = currentCountryIndex === 9 // USA
   const nextCountry = !isAtFinalDestination ? countries[currentCountryIndex + 1] : null
+  const remainingDistance = currentCountry.distanceRequired - progressInCountry
 
   return (
     <div style={containerStyle} data-testid="location-indicator">
@@ -44,6 +54,8 @@ export function LocationIndicator() {
 
       {nextCountry && (
         <>
+          <span style={arrowStyle}>&rarr;</span>
+          <span style={distanceStyle} data-testid="remaining-distance">{remainingDistance}</span>
           <span style={arrowStyle}>&rarr;</span>
           <span style={countryStyle}>
             <span>{nextCountry.icon}</span>

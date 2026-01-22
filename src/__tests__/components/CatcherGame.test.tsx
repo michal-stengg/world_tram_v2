@@ -114,8 +114,8 @@ describe('CatcherGame', () => {
       const startButton = screen.getByRole('button', { name: /start/i })
       fireEvent.click(startButton)
 
-      // Should show 15 seconds initially
-      expect(screen.getByText(/15/)).toBeInTheDocument()
+      // Should show 20 seconds initially
+      expect(screen.getByText(/20/)).toBeInTheDocument()
     })
 
     it('shows score during gameplay', () => {
@@ -152,8 +152,8 @@ describe('CatcherGame', () => {
         vi.advanceTimersByTime(1000)
       })
 
-      // Should show 14 seconds
-      expect(screen.getByText(/14/)).toBeInTheDocument()
+      // Should show 19 seconds
+      expect(screen.getByText(/19/)).toBeInTheDocument()
     })
 
     it('shows the catcher element', () => {
@@ -232,9 +232,9 @@ describe('CatcherGame', () => {
       const startButton = screen.getByRole('button', { name: /start/i })
       fireEvent.click(startButton)
 
-      // Advance time by 15 seconds (game duration)
+      // Advance time by 20 seconds (game duration)
       act(() => {
-        vi.advanceTimersByTime(15000)
+        vi.advanceTimersByTime(20000)
       })
 
       expect(mockOnComplete).toHaveBeenCalledTimes(1)
@@ -253,9 +253,9 @@ describe('CatcherGame', () => {
       const startButton = screen.getByRole('button', { name: /start/i })
       fireEvent.click(startButton)
 
-      // Advance time by 15 seconds
+      // Advance time by 20 seconds
       act(() => {
-        vi.advanceTimersByTime(15000)
+        vi.advanceTimersByTime(20000)
       })
 
       // Should show game over message
@@ -284,6 +284,47 @@ describe('CatcherGame', () => {
       // Should have at least one falling item
       const items = screen.queryAllByTestId('falling-item')
       expect(items.length).toBeGreaterThan(0)
+    })
+
+    it('items are caught when they reach the catcher position', () => {
+      // Mock Math.random to control item spawn position and type
+      const originalRandom = Math.random
+      let callCount = 0
+      Math.random = vi.fn(() => {
+        callCount++
+        // First call: isBad check (return > 0.3 for good item)
+        if (callCount === 1) return 0.5
+        // Second call: x position (return 0.5 for center, maps to 50% via 0.5*80+10)
+        if (callCount === 2) return 0.5
+        return 0.5
+      })
+
+      render(
+        <CatcherGame
+          miniGame={testMiniGame}
+          onComplete={mockOnComplete}
+          onSkip={mockOnSkip}
+        />
+      )
+
+      const startButton = screen.getByRole('button', { name: /start/i })
+      fireEvent.click(startButton)
+
+      // Catcher starts at x=50, item spawns at x=50 (0.5*80+10)
+      // Item falls at 2% per 50ms tick
+      // CATCHER_Y_POSITION is 85, collision zone is 80-90
+      // Item starts at y=0, needs to reach y=80+ to be caught
+      // That's 80/2 = 40 ticks = 2000ms
+
+      // Let item fall to collision zone (y >= 80)
+      act(() => {
+        vi.advanceTimersByTime(2100) // Enough time for item to reach catcher
+      })
+
+      // Score should have increased (good item caught)
+      expect(screen.getByText('1')).toBeInTheDocument()
+
+      Math.random = originalRandom
     })
   })
 })

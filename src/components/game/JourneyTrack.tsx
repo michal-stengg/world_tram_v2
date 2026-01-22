@@ -7,6 +7,7 @@ import { useGameStore } from '../../stores/gameStore'
 export function JourneyTrack() {
   const currentCountryIndex = useGameStore((state) => state.currentCountryIndex)
   const selectedTrain = useGameStore((state) => state.selectedTrain)
+  const progressInCountry = useGameStore((state) => state.progressInCountry)
 
   const getCountryStatus = (index: number): CountryStatus => {
     if (index < currentCountryIndex) return 'visited'
@@ -50,12 +51,17 @@ export function JourneyTrack() {
   const trainStyle: React.CSSProperties = {
     position: 'absolute',
     bottom: '75px',
-    fontSize: '4.5rem',
+    fontSize: '3.375rem',
     zIndex: 10,
   }
 
-  // Calculate train position (centered on current country)
-  const trainPosition = `calc(${(currentCountryIndex * 192) + 90}px)`
+  // Calculate train position based on current country and progress
+  const currentCountry = countries[currentCountryIndex]
+  const progressRatio = currentCountry ? progressInCountry / currentCountry.distanceRequired : 0
+  const markerSpacing = 192 // pixels between country markers
+  const basePosition = (currentCountryIndex * markerSpacing) + 90 // Center on current country
+  const nextCountryOffset = progressRatio * markerSpacing // Move towards next country based on progress
+  const trainPosition = `${basePosition + nextCountryOffset}px`
 
   return (
     <div style={containerStyle} data-testid="journey-track">

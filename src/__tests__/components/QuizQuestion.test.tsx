@@ -186,4 +186,68 @@ describe('QuizQuestion', () => {
       expect(funFact).toBeInTheDocument()
     })
   })
+
+  describe('image display', () => {
+    const questionWithImage: QuizQuestionType = {
+      ...mockQuestion,
+      imageUrl: '/quiz-images/france/paris.webp',
+    }
+
+    it('does not render image when showResult is false', () => {
+      render(
+        <QuizQuestion
+          {...defaultProps}
+          question={questionWithImage}
+          showResult={false}
+        />
+      )
+
+      expect(screen.queryByTestId('quiz-image')).not.toBeInTheDocument()
+    })
+
+    it('renders image when showResult is true and imageUrl exists', () => {
+      render(
+        <QuizQuestion
+          {...defaultProps}
+          question={questionWithImage}
+          showResult={true}
+          selectedAnswer="Paris"
+        />
+      )
+
+      const image = screen.getByTestId('quiz-image')
+      expect(image).toBeInTheDocument()
+      expect(image).toHaveAttribute('src', '/quiz-images/france/paris.webp')
+    })
+
+    it('works without imageUrl (backward compatible)', () => {
+      render(
+        <QuizQuestion
+          {...defaultProps}
+          showResult={true}
+          selectedAnswer="Paris"
+        />
+      )
+
+      expect(screen.queryByTestId('quiz-image')).not.toBeInTheDocument()
+      expect(screen.getByTestId('fun-fact')).toBeInTheDocument()
+    })
+
+    it('renders image before fun fact in feedback section', () => {
+      render(
+        <QuizQuestion
+          {...defaultProps}
+          question={questionWithImage}
+          showResult={true}
+          selectedAnswer="Paris"
+        />
+      )
+
+      const image = screen.getByTestId('quiz-image')
+      const funFact = screen.getByTestId('fun-fact')
+
+      // Image should come before fun fact in the DOM
+      expect(image.compareDocumentPosition(funFact)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    })
+  })
 })

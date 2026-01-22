@@ -16,9 +16,10 @@ interface FallingItem {
   y: number
   type: 'good' | 'bad'
   icon: string
+  caught?: boolean
 }
 
-const GAME_DURATION = 15 // seconds
+const GAME_DURATION = 20 // seconds
 const MAX_SCORE = 15
 const CATCHER_MOVE_SPEED = 10 // percentage per keypress
 const ITEM_FALL_SPEED = 2 // percentage per tick
@@ -35,6 +36,7 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
   const [items, setItems] = useState<FallingItem[]>([])
 
   const nextItemId = useRef(0)
+  const catcherXRef = useRef(50) // Sync ref for catcher position
   const gameIntervalRef = useRef<number | null>(null)
   const timerIntervalRef = useRef<number | null>(null)
   const spawnIntervalRef = useRef<number | null>(null)
@@ -59,11 +61,18 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
     )
   }, [])
 
+  const updateCatcherPosition = useCallback((newX: number) => {
+    const clampedX = Math.max(10, Math.min(90, newX))
+    setCatcherX(clampedX)
+    catcherXRef.current = clampedX
+  }, [])
+
   const startGame = useCallback(() => {
     setGameState('playing')
     setTimeRemaining(GAME_DURATION)
     setScore(0)
     setCatcherX(50)
+    catcherXRef.current = 50 // Reset ref
     setItems([])
     nextItemId.current = 0
   }, [])
@@ -74,15 +83,15 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
-        setCatcherX(prev => Math.max(10, prev - CATCHER_MOVE_SPEED))
+        updateCatcherPosition(catcherXRef.current - CATCHER_MOVE_SPEED)
       } else if (e.key === 'ArrowRight') {
-        setCatcherX(prev => Math.min(90, prev + CATCHER_MOVE_SPEED))
+        updateCatcherPosition(catcherXRef.current + CATCHER_MOVE_SPEED)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [gameState])
+  }, [gameState, updateCatcherPosition])
 
   // Game loop - update item positions and check collisions
   useEffect(() => {
@@ -90,24 +99,31 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
 
     gameIntervalRef.current = window.setInterval(() => {
       setItems(prevItems => {
+        const currentCatcherX = catcherXRef.current // Read from ref
         const updatedItems: FallingItem[] = []
         let scoreChange = 0
 
-        setCatcherX(currentCatcherX => {
-          for (const item of prevItems) {
-            const newY = item.y + ITEM_FALL_SPEED
+        for (const item of prevItems) {
+          // Skip items already caught (being animated)
+          if (item.caught) {
+            updatedItems.push(item)
+            continue
+          }
 
-            // Check collision
-            if (checkCollision({ ...item, y: newY }, currentCatcherX)) {
-              scoreChange += item.type === 'good' ? 1 : -1
-            } else if (newY < 100) {
+          // Check collision at CURRENT position (so item is rendered here first)
+          if (checkCollision(item, currentCatcherX)) {
+            scoreChange += item.type === 'good' ? 1 : -1
+            // Mark as caught for animation instead of removing immediately
+            updatedItems.push({ ...item, caught: true })
+          } else {
+            const newY = item.y + ITEM_FALL_SPEED
+            if (newY < 100) {
               // Item still on screen
               updatedItems.push({ ...item, y: newY })
             }
             // Items that fall off screen are removed
           }
-          return currentCatcherX
-        })
+        }
 
         if (scoreChange !== 0) {
           setScore(prev => Math.max(0, prev + scoreChange))
@@ -123,6 +139,20 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
       }
     }
   }, [gameState, checkCollision])
+
+  // Remove caught items after animation completes
+  useEffect(() => {
+    if (gameState !== 'playing') return
+
+    const caughtItems = items.filter(item => item.caught)
+    if (caughtItems.length === 0) return
+
+    const timeout = setTimeout(() => {
+      setItems(prev => prev.filter(item => !item.caught))
+    }, 300) // Match animation duration
+
+    return () => clearTimeout(timeout)
+  }, [items, gameState])
 
   // Timer countdown
   useEffect(() => {
@@ -216,8 +246,10 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
     position: 'absolute',
     left: `${item.x}%`,
     top: `${item.y}%`,
-    transform: 'translateX(-50%)',
+    transform: item.caught ? 'translateX(-50%) scale(0)' : 'translateX(-50%)',
     fontSize: '1.5rem',
+    opacity: item.caught ? 0 : 1,
+    transition: item.caught ? 'transform 0.3s ease-out, opacity 0.3s ease-out' : 'none',
   })
 
   const statsStyle: React.CSSProperties = {

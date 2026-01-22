@@ -23,7 +23,7 @@ export function CountryMarker({ country, status }: CountryMarkerProps) {
   }
 
   const iconStyle: React.CSSProperties = {
-    fontSize: '4.5rem',
+    fontSize: '3.375rem',
     opacity: isVisited ? 0.5 : 1,
     filter: isVisited ? 'grayscale(50%)' : 'none',
   }

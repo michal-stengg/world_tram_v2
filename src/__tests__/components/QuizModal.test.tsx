@@ -179,13 +179,13 @@ describe('QuizModal', () => {
     it('shows correct reward for 3/3 correct', () => {
       completeQuiz(['Paris', 'Eiffel Tower', 'Croissant'])
 
-      expect(screen.getByText(/\+\$30 earned/)).toBeInTheDocument()
+      expect(screen.getByText(/\+\$45 earned/)).toBeInTheDocument()
     })
 
     it('shows correct reward for 2/3 correct', () => {
       completeQuiz(['Paris', 'Eiffel Tower', 'Pizza']) // 2 correct
 
-      expect(screen.getByText(/\+\$20 earned/)).toBeInTheDocument()
+      expect(screen.getByText(/\+\$30 earned/)).toBeInTheDocument()
     })
 
     it('Continue button calls onComplete with correct count', () => {

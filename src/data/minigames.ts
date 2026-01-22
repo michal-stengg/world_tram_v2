@@ -19,7 +19,7 @@ export const minigames: MiniGame[] = [
     icon: '🥐',
     description: 'Catch falling croissants!',
     rewardType: 'money',
-    maxReward: 25,
+    maxReward: 38,
   },
   {
     id: 'beer-stein-balance',
@@ -29,7 +29,7 @@ export const minigames: MiniGame[] = [
     icon: '🍺',
     description: 'Balance the stein at the right moment!',
     rewardType: 'money',
-    maxReward: 50,
+    maxReward: 75,
   },
   {
     id: 'matryoshka-match',
@@ -39,7 +39,7 @@ export const minigames: MiniGame[] = [
     icon: '🪆',
     description: 'Match the nesting dolls!',
     rewardType: 'money',
-    maxReward: 40,
+    maxReward: 60,
   },
   {
     id: 'dumpling-catch',
@@ -49,7 +49,7 @@ export const minigames: MiniGame[] = [
     icon: '🥟',
     description: 'Catch the dumplings!',
     rewardType: 'money',
-    maxReward: 25,
+    maxReward: 38,
   },
   {
     id: 'sushi-sort',
@@ -59,7 +59,7 @@ export const minigames: MiniGame[] = [
     icon: '🍣',
     description: 'Sort sushi at the perfect time!',
     rewardType: 'money',
-    maxReward: 25,
+    maxReward: 38,
   },
   {
     id: 'night-market-grab',
@@ -69,7 +69,7 @@ export const minigames: MiniGame[] = [
     icon: '🏮',
     description: 'Grab treats at the night market!',
     rewardType: 'money',
-    maxReward: 50,
+    maxReward: 75,
   },
   {
     id: 'boomerang-catch',
@@ -79,7 +79,7 @@ export const minigames: MiniGame[] = [
     icon: '🪃',
     description: 'Time your catch perfectly!',
     rewardType: 'money',
-    maxReward: 40,
+    maxReward: 60,
   },
   {
     id: 'carnival-rhythm',
@@ -89,7 +89,7 @@ export const minigames: MiniGame[] = [
     icon: '🎭',
     description: 'Hit the beat!',
     rewardType: 'money',
-    maxReward: 50,
+    maxReward: 75,
   },
   {
     id: 'maple-syrup-pour',
@@ -99,7 +99,7 @@ export const minigames: MiniGame[] = [
     icon: '🍁',
     description: 'Pour the perfect amount!',
     rewardType: 'money',
-    maxReward: 25,
+    maxReward: 38,
   },
   {
     id: 'hot-dog-stack',
@@ -109,7 +109,7 @@ export const minigames: MiniGame[] = [
     icon: '🌭',
     description: 'Stack those hot dogs!',
     rewardType: 'money',
-    maxReward: 25,
+    maxReward: 38,
   },
 ];
 

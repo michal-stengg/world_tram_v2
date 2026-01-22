@@ -1,73 +1,60 @@
-# React + TypeScript + Vite
+# World Tram
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A turn-based railway adventure game where you captain a tram across the world, managing resources, crew, and overcoming challenges along the way.
 
-Currently, two official plugins are available:
+## The Goal
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Travel from **France** to **USA** across 10 countries, managing your resources and crew to reach the final destination. When you arrive at USA, click the **FINISH** button to complete your journey and achieve victory!
 
-## React Compiler
+## Gameplay
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Resources
+- **Food** - Keep your crew fed
+- **Fuel** - Power your tram forward
+- **Water** - Essential for survival
+- **Money** - Buy supplies and upgrades
 
-## Expanding the ESLint configuration
+### Your Journey
+1. **Choose your Captain** - Each captain has unique stats (Engineering, Food Production, Security)
+2. **Select your Train** - Different trains have varying Speed, Reliability, and Power
+3. **Manage your Crew** - Assign crew members to roles:
+   - **Engineers** - Reduce fuel consumption
+   - **Cooks** - Increase food production
+   - **Security** - Reduce event penalties
+4. **Roll and Move** - Press GO to roll dice and advance through countries
+5. **Handle Events** - Random events challenge you along the way
+6. **Visit Stations** - Refill water, earn money, play mini-games, and take quizzes
+7. **Reach USA** - Click FINISH to win!
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Features
+- 10 countries to travel through
+- Random events with card-based resolution
+- Mini-games at each station
+- Country quizzes to earn bonus money
+- Cargo discovery system
+- Station shops to buy resources
+- Crew management system
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Running the Game
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# Install dependencies
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start development server
+npm run dev
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Tech Stack
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- React 19 with TypeScript
+- Vite for build tooling
+- Zustand for state management
+- Framer Motion for animations
+- Vitest for testing

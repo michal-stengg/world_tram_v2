@@ -9,14 +9,23 @@ Travel from **France** to **USA** across 10 countries, managing your resources a
 ## Gameplay
 
 ### Resources
-- **Food** - Keep your crew fed
-- **Fuel** - Power your tram forward
-- **Water** - Essential for survival
-- **Money** - Buy supplies and upgrades
+- 🍞 **Food** - Keep your crew fed
+- ⛽ **Fuel** - Power your tram forward
+- 💧 **Water** - Essential for survival
+- 💰 **Money** - Buy supplies and upgrades
 
 ### Your Journey
-1. **Choose your Captain** - Each captain has unique stats (Engineering, Food Production, Security)
-2. **Select your Train** - Different trains have varying Speed, Reliability, and Power
+
+**The Route:** 🗼 France → 🏰 Germany → 🏛️ Russia → 🏯 China → 🗻 Japan → 🌴 Singapore → 🦘 Australia → 🎭 Brazil → 🍁 Canada → 🗽 USA
+
+1. **Choose your Captain** - Each has unique stats:
+   - 🧑‍✈️ **Renji** (Japan) - Engineering specialist
+   - 👨‍🍳 **Luca** (Italy) - Food production expert
+   - 🤠 **Cooper** (USA) - Security focused
+2. **Select your Train** - Different trains have varying stats:
+   - 🚄 **Blitzzug** (Germany) - High speed
+   - 🦊 **Kitsune** (Japan) - Balanced performance
+   - 🚂 **Ironhorse** (USA) - High power and reliability
 3. **Manage your Crew** - Assign crew members to roles:
    - **Engineers** - Reduce fuel consumption
    - **Cooks** - Increase food production

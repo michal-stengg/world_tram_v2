@@ -34,6 +34,7 @@ vi.mock('../../logic/events', () => ({
 describe('Phase 6: Station Arrivals Integration', () => {
   // Reset store to initial game state before each test
   beforeEach(() => {
+    vi.useFakeTimers()
     act(() => {
       useGameStore.setState({
         currentScreen: 'dashboard',
@@ -50,6 +51,10 @@ describe('Phase 6: Station Arrivals Integration', () => {
     })
   })
 
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   describe('arriving at new country triggers station modal', () => {
     it('displays station modal when arriving at Germany (country index 1)', () => {
       render(<App />)
@@ -62,6 +67,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // which crosses from France to Germany (each country is 10 distance)
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Station modal should be visible
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -75,6 +81,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Station modal should contain Germany's icon
       const stationModal = screen.getByTestId('station-modal')
@@ -100,6 +107,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // Execute turn to arrive at station
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // After station arrival, water should be refilled toward max
       // The station refill happens before the turn result is displayed
@@ -117,6 +125,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // Execute turn to arrive at station
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Station reward: BASE_STATION_MONEY (10) + captain.security * SECURITY_MONEY_MULTIPLIER (5)
       // Renji has security stat of 3, so reward = 10 + 3*5 = 25
@@ -145,6 +154,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Verify station reward is displayed
       const turnResult = useGameStore.getState().lastTurnResult
@@ -165,6 +175,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // Execute turn that triggers station arrival
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Station modal should be visible
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -189,6 +200,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // Execute turn
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Dismiss station modal
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
@@ -211,6 +223,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // Execute turn
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Click the overlay to dismiss station modal
       const overlay = screen.getByTestId('station-modal-overlay')
@@ -238,6 +251,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // Execute first turn (arrives at Germany)
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Verify we're at Germany
       expect(useGameStore.getState().currentCountryIndex).toBe(1)
@@ -254,6 +268,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       // Execute another turn (should arrive at Russia)
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Should see station modal again for Russia
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -278,6 +293,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       // Execute first turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /continue/i })) // station modal
       fireEvent.click(screen.getByRole('button', { name: /continue/i })) // turn result
 
@@ -285,6 +301,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       // Execute second turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /continue/i })) // station modal
       fireEvent.click(screen.getByRole('button', { name: /continue/i })) // turn result
 
@@ -308,6 +325,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
       // Execute turn - with dice roll of 10 and Blitzzug speed of 3
       // Movement = 10 + 3 = 13, which crosses to Germany with progress 3
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       const stateAfterFirstTurn = useGameStore.getState()
       expect(stateAfterFirstTurn.currentCountryIndex).toBe(1) // Germany
@@ -319,6 +337,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       // Execute another turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       const stateAfterSecondTurn = useGameStore.getState()
       // Progress 3 + 13 = 16, crosses to Russia with progress 6
@@ -341,6 +360,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       // Execute turn - arrives at Germany with station reward
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Verify station modal appears (because we arrived at new country)
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -370,6 +390,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       // Execute turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Should show station modal (for the last country arrived at)
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -397,6 +418,7 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       // Execute turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Check station reward calculation for Cooper
       // Money: 10 + 5*5 = 35

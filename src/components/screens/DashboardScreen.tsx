@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ResourceBar } from '../game/ResourceBar'
 import { JourneyTrack } from '../game/JourneyTrack'
 import { LocationIndicator } from '../game/LocationIndicator'
@@ -159,6 +160,10 @@ export function DashboardScreen() {
   // Quiz state
   const [showQuizModal, setShowQuizModal] = useState(false)
 
+  // Turn dice rolling animation state
+  const [isTurnRolling, setIsTurnRolling] = useState(false)
+  const [turnDiceDisplayed, setTurnDiceDisplayed] = useState(1)
+
   // When a new turn result comes in with an event, set it in the store
   useEffect(() => {
     if (lastTurnResult?.eventTriggered && lastTurnResult.event) {
@@ -191,6 +196,17 @@ export function DashboardScreen() {
     }
   }, [lastTurnResult, currentEvent, showCargoDiscovery])
 
+  // Animate turn dice while rolling
+  useEffect(() => {
+    if (!isTurnRolling) return
+
+    const interval = setInterval(() => {
+      setTurnDiceDisplayed((prev) => (prev % 6) + 1)
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [isTurnRolling])
+
   // When arriving at station with cargo, open cargo before showing station modal
   useEffect(() => {
     if (
@@ -208,6 +224,17 @@ export function DashboardScreen() {
       }
     }
   }, [lastTurnResult, currentEvent, showCargoDiscovery, carriedCargo.length, pendingCargoOpen, openCargoAtStation])
+
+  const handleGoClick = () => {
+    // Start the dice rolling animation
+    setIsTurnRolling(true)
+
+    // After animation delay, execute the turn
+    setTimeout(() => {
+      setIsTurnRolling(false)
+      executeTurn()
+    }, 1000)
+  }
 
   const handleDismissStationModal = () => {
     setShowStationModal(false)
@@ -376,9 +403,90 @@ export function DashboardScreen() {
         <CrewPanel />
         <CargoInventory carriedCargo={carriedCargo} />
         <div style={goButtonContainerStyle}>
-          <GoButton onGo={executeTurn} />
+          <GoButton onGo={handleGoClick} disabled={isTurnRolling} />
         </div>
       </div>
+
+      {/* Turn Dice Rolling Overlay - shows when GO button is pressed */}
+      <AnimatePresence>
+        {isTurnRolling && (
+          <>
+            <motion.div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                zIndex: 999,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              data-testid="turn-dice-overlay"
+            />
+            <motion.div
+              style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+              }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+            >
+              <motion.div
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '4rem',
+                  fontWeight: 'bold',
+                  color: '#1a1a2e',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                  border: '4px solid var(--color-gold, #F7B538)',
+                }}
+                animate={{
+                  rotate: [0, -15, 15, -10, 10, 0],
+                  scale: [1, 1.1, 0.95, 1.05, 1],
+                }}
+                transition={{
+                  duration: 0.5,
+                  repeat: Infinity,
+                  repeatType: 'loop',
+                }}
+                data-testid="turn-dice-box"
+              >
+                <span data-testid="turn-dice-value">{turnDiceDisplayed}</span>
+              </motion.div>
+              <motion.div
+                style={{
+                  marginTop: '1.5rem',
+                  fontSize: '1.5rem',
+                  color: 'var(--color-gold, #F7B538)',
+                  fontWeight: 'bold',
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                }}
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              >
+                Rolling...
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Event Modal - shows when an event is triggered (before station/turn result) */}
       {currentEvent && (

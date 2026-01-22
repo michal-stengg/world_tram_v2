@@ -263,9 +263,29 @@ describe('DashboardScreen', () => {
   })
 
   describe('turn execution', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
     it('renders GoButton component', () => {
       render(<DashboardScreen />)
       expect(screen.getByTestId('go-button')).toBeInTheDocument()
+    })
+
+    it('shows dice rolling animation when GO is clicked', () => {
+      render(<DashboardScreen />)
+      const goButton = screen.getByRole('button', { name: /GO/i })
+
+      fireEvent.click(goButton)
+
+      // Dice overlay should be visible during animation
+      expect(screen.getByTestId('turn-dice-overlay')).toBeInTheDocument()
+      expect(screen.getByTestId('turn-dice-box')).toBeInTheDocument()
+      expect(screen.getByText('Rolling...')).toBeInTheDocument()
     })
 
     it('executes turn when GO button is clicked', () => {
@@ -273,6 +293,11 @@ describe('DashboardScreen', () => {
       const goButton = screen.getByRole('button', { name: /GO/i })
 
       fireEvent.click(goButton)
+
+      // Wait for dice animation to complete
+      act(() => {
+        vi.advanceTimersByTime(1100)
+      })
 
       // Turn should be executed, incrementing turn count
       expect(useGameStore.getState().turnCount).toBe(2)
@@ -283,6 +308,11 @@ describe('DashboardScreen', () => {
       const goButton = screen.getByRole('button', { name: /GO/i })
 
       fireEvent.click(goButton)
+
+      // Wait for dice animation to complete
+      act(() => {
+        vi.advanceTimersByTime(1100)
+      })
 
       // If cargo discovery modal shows, dismiss it first
       if (screen.queryByTestId('cargo-discovery-modal')) {
@@ -302,6 +332,11 @@ describe('DashboardScreen', () => {
       const goButton = screen.getByRole('button', { name: /GO/i })
 
       fireEvent.click(goButton)
+
+      // Wait for dice animation to complete
+      act(() => {
+        vi.advanceTimersByTime(1100)
+      })
 
       // If cargo discovery modal shows, dismiss it first
       if (screen.queryByTestId('cargo-discovery-modal')) {
@@ -329,6 +364,11 @@ describe('DashboardScreen', () => {
 
       fireEvent.click(goButton)
 
+      // Wait for dice animation to complete
+      act(() => {
+        vi.advanceTimersByTime(1100)
+      })
+
       const newResources = useGameStore.getState().resources
       // Resources should change after a turn (fuel at minimum is consumed)
       const resourcesChanged =
@@ -345,6 +385,12 @@ describe('DashboardScreen', () => {
       const goButton = screen.getByRole('button', { name: /GO/i })
 
       fireEvent.click(goButton)
+
+      // Wait for dice animation to complete
+      act(() => {
+        vi.advanceTimersByTime(1100)
+      })
+
       expect(useGameStore.getState().lastTurnResult).not.toBeNull()
 
       // If cargo discovery modal shows, dismiss it first

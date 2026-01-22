@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import App from '../../App'
 import { useGameStore } from '../../stores/gameStore'
@@ -6,9 +6,14 @@ import { useGameStore } from '../../stores/gameStore'
 describe('Phase 1 Navigation Flow', () => {
   // Reset store state before each test
   beforeEach(() => {
+    vi.useFakeTimers()
     act(() => {
       useGameStore.setState({ currentScreen: 'intro' })
     })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   describe('happy path flow', () => {
@@ -50,6 +55,7 @@ describe('Phase 1 Navigation Flow', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Should navigate to victory screen after turn processing
       expect(screen.getByText('VICTORY!')).toBeInTheDocument()

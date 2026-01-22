@@ -41,6 +41,7 @@ vi.mock('../../logic/events', () => ({
 describe('Phase 8: Cart Integration', () => {
   // Reset store to initial game state before each test
   beforeEach(() => {
+    vi.useFakeTimers()
     act(() => {
       useGameStore.setState({
         currentScreen: 'dashboard',
@@ -62,6 +63,7 @@ describe('Phase 8: Cart Integration', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     vi.clearAllMocks()
   })
 
@@ -72,6 +74,7 @@ describe('Phase 8: Cart Integration', () => {
       // Execute turn to arrive at station
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Station modal should be visible
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -90,6 +93,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Click Visit Shop button
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
@@ -122,6 +126,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Click Visit Shop button
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
@@ -147,6 +152,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Click Visit Shop button
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
@@ -172,6 +178,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Click Visit Shop button
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
@@ -205,6 +212,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // All cart buy buttons should be disabled because we have less than 70 (cheapest cart)
@@ -231,6 +239,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Fuel cart should show "Owned" and be disabled
@@ -323,6 +332,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Purchase fuel-cart (100)
@@ -352,6 +362,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Get money after arriving at station (includes station reward)
@@ -382,6 +393,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Purchase multiple carts
@@ -410,6 +422,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Purchase fuel-cart
@@ -481,6 +494,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at first station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Purchase a cart
@@ -495,6 +509,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute another turn to arrive at next station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Verify fuel cart still shows as owned
@@ -517,6 +532,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Get initial money displayed in shop header
@@ -541,6 +557,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Station modal should be visible
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -561,6 +578,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Station modal shows first
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
@@ -579,6 +597,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
 
       // Go to shop
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
@@ -603,6 +622,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // First turn - arrive at Germany
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       expect(screen.getByText(`Welcome to ${countries[1].name}!`)).toBeInTheDocument()
 
       // Visit shop and purchase something
@@ -615,6 +635,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Second turn - should arrive at next country
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
       expect(screen.getByText(`Welcome to ${countries[2].name}!`)).toBeInTheDocument()
 
@@ -629,6 +650,7 @@ describe('Phase 8: Cart Integration', () => {
 
       // Execute turn to arrive at station
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      act(() => { vi.advanceTimersByTime(1100) })
       fireEvent.click(screen.getByRole('button', { name: /visit shop/i }))
 
       // Verify all carts from data are shown

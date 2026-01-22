@@ -159,6 +159,7 @@ describe('Phase 7: Events Integration', () => {
       // Execute turn
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Event modal should be visible
       expect(screen.getByTestId('event-modal')).toBeInTheDocument()
@@ -174,6 +175,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       expect(screen.getByTestId('event-stat-tested')).toHaveTextContent('engineering')
       expect(screen.getByTestId('event-difficulty')).toHaveTextContent(String(engineeringEvent.difficulty))
@@ -186,6 +188,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Event modal should NOT be visible
       expect(screen.queryByTestId('event-modal')).not.toBeInTheDocument()
@@ -202,6 +205,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Card hand should be displayed
       expect(screen.getByTestId('card-hand')).toBeInTheDocument()
@@ -220,6 +224,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Find and click on a card to select it (using card-display- prefix)
       const cardElements = screen.getAllByTestId(/^card-display-/)
@@ -247,6 +252,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Find and select the engineering card (first card in testCards)
       const cardElement = screen.getByTestId('card-display-test-engineering-card')
@@ -276,6 +282,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Find and select the security card (non-matching)
       const cardElement = screen.getByTestId('card-display-test-security-card')
@@ -311,6 +318,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Roll without selecting cards
       const rollButton = screen.getByRole('button', { name: /roll/i })
@@ -346,6 +354,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
@@ -372,6 +381,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
@@ -396,6 +406,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
@@ -417,6 +428,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       const rollButton = screen.getByRole('button', { name: /roll/i })
       fireEvent.click(rollButton)
@@ -438,6 +450,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Select a card
       const cardElement = screen.getByTestId('card-display-test-engineering-card')
@@ -473,6 +486,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Select a card
       const cardElement = screen.getByTestId('card-display-test-engineering-card')
@@ -498,6 +512,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Select multiple cards (use card-display- prefix)
       const cardElements = screen.getAllByTestId(/^card-display-/)
@@ -527,6 +542,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Event modal should show first (not station modal)
       expect(screen.getByTestId('event-modal')).toBeInTheDocument()
@@ -543,6 +559,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Resolve event
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
@@ -564,6 +581,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Execute turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      advanceDiceRollingAnimation()
 
       // Resolve event
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
@@ -595,6 +613,7 @@ describe('Phase 7: Events Integration', () => {
 
       // Execute first turn
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      advanceDiceRollingAnimation()
 
       // Resolve event
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
@@ -615,6 +634,7 @@ describe('Phase 7: Events Integration', () => {
       // Can execute another turn
       expect(useGameStore.getState().turnCount).toBe(2)
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      advanceDiceRollingAnimation()
 
       // Another event should trigger based on our mock
       expect(screen.getByTestId('event-modal')).toBeInTheDocument()
@@ -636,6 +656,7 @@ describe('Phase 7: Events Integration', () => {
 
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
+      advanceDiceRollingAnimation()
 
       // Should transition to game over screen, not show event
       expect(useGameStore.getState().currentScreen).toBe('gameOver')
@@ -651,6 +672,7 @@ describe('Phase 7: Events Integration', () => {
       render(<App />)
 
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      advanceDiceRollingAnimation()
 
       // Select two cards (use card-display- prefix)
       const cardElements = screen.getAllByTestId(/^card-display-/)
@@ -673,6 +695,7 @@ describe('Phase 7: Events Integration', () => {
       render(<App />)
 
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      advanceDiceRollingAnimation()
 
       // Don't select any cards, just roll
       fireEvent.click(screen.getByRole('button', { name: /roll/i }))
@@ -696,6 +719,7 @@ describe('Phase 7: Events Integration', () => {
       render(<App />)
 
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      advanceDiceRollingAnimation()
 
       expect(screen.getByTestId('event-stat-tested')).toHaveTextContent('security')
 
@@ -718,6 +742,7 @@ describe('Phase 7: Events Integration', () => {
       render(<App />)
 
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
+      advanceDiceRollingAnimation()
 
       expect(screen.getByTestId('event-stat-tested')).toHaveTextContent('food')
     })

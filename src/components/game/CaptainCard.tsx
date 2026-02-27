@@ -19,47 +19,51 @@ const cardStyles: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  padding: '1.5rem',
-  borderRadius: '12px',
-  backgroundColor: '#1a1a2e',
-  border: '3px solid #333',
+  padding: '1.5rem 1.25rem',
+  borderRadius: 'var(--radius-lg, 12px)',
+  backgroundColor: 'var(--color-bg-card, rgba(22, 33, 62, 0.8))',
+  border: 'var(--border-card, 2px solid rgba(255, 255, 255, 0.1))',
   cursor: 'pointer',
-  width: '220px',
+  width: '240px',
   gap: '0.5rem',
   fontFamily: 'monospace',
 }
 
 const selectedCardStyles: React.CSSProperties = {
   ...cardStyles,
-  border: '3px solid #F7B538',
-  boxShadow: '0 0 20px rgba(247, 181, 56, 0.4)',
+  border: 'var(--border-card-selected, 2px solid #F7B538)',
+  boxShadow: 'var(--shadow-card-selected)',
+  backgroundColor: 'var(--color-bg-card-hover, rgba(30, 40, 70, 0.9))',
 }
 
 const portraitStyles: React.CSSProperties = {
-  fontSize: '3rem',
+  fontSize: '3.5rem',
   marginBottom: '0.5rem',
+  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
 }
 
 const nameStyles: React.CSSProperties = {
-  fontSize: '1.25rem',
+  fontSize: '1.1rem',
   fontWeight: 'bold',
-  color: '#F7B538',
+  color: 'var(--color-gold, #F7B538)',
   margin: 0,
+  textShadow: '0 1px 3px rgba(0,0,0,0.4)',
 }
 
 const originStyles: React.CSSProperties = {
-  fontSize: '0.875rem',
-  color: '#888',
+  fontSize: '0.75rem',
+  color: 'var(--color-text-secondary, #a0b4c8)',
   margin: 0,
+  letterSpacing: '0.05em',
 }
 
 const descriptionStyles: React.CSSProperties = {
-  fontSize: '0.75rem',
-  color: '#aaa',
+  fontSize: '0.7rem',
+  color: 'var(--color-text-secondary, #a0b4c8)',
   textAlign: 'center',
   marginTop: '0.5rem',
   marginBottom: '0.75rem',
-  lineHeight: 1.4,
+  lineHeight: 1.5,
   minHeight: '3rem',
 }
 
@@ -68,6 +72,8 @@ const statsContainerStyles: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   gap: '0.25rem',
+  borderTop: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
+  paddingTop: '0.75rem',
 }
 
 export function CaptainCard({ captain, selected = false, onSelect }: CaptainCardProps) {

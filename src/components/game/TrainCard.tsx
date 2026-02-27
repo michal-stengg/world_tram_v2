@@ -12,61 +12,68 @@ const cardStyles: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  padding: '1.5rem',
-  border: '3px solid #ffffff',
-  borderRadius: '12px',
+  padding: '1.5rem 1.25rem',
+  borderRadius: 'var(--radius-lg, 12px)',
+  backgroundColor: 'var(--color-bg-card, rgba(22, 33, 62, 0.8))',
+  border: 'var(--border-card, 2px solid rgba(255, 255, 255, 0.1))',
   cursor: 'pointer',
-  backgroundColor: 'rgba(45, 27, 105, 0.5)',
-  minWidth: '220px',
-  maxWidth: '280px',
+  width: '240px',
+  gap: '0.5rem',
+  fontFamily: 'monospace',
 }
 
 const selectedCardStyles: React.CSSProperties = {
   ...cardStyles,
-  borderColor: '#F7B538',
-  boxShadow: '0 0 20px rgba(247, 181, 56, 0.5)',
+  border: 'var(--border-card-selected, 2px solid #F7B538)',
+  boxShadow: 'var(--shadow-card-selected)',
+  backgroundColor: 'var(--color-bg-card-hover, rgba(30, 40, 70, 0.9))',
 }
 
 const spriteStyles: React.CSSProperties = {
-  fontSize: '3rem',
+  fontSize: '3.5rem',
   marginBottom: '0.5rem',
+  filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
 }
 
 const nameStyles: React.CSSProperties = {
-  fontSize: '1.5rem',
+  fontSize: '1.1rem',
   fontWeight: 'bold',
   textTransform: 'uppercase',
   marginBottom: '0.25rem',
-  color: '#ffffff',
+  color: 'var(--color-gold, #F7B538)',
+  textShadow: '0 1px 3px rgba(0,0,0,0.4)',
 }
 
 const originStyles: React.CSSProperties = {
-  fontSize: '1rem',
-  opacity: 0.8,
-  marginBottom: '1rem',
-  color: '#ffffff',
+  fontSize: '0.75rem',
+  color: 'var(--color-text-secondary, #a0b4c8)',
+  marginBottom: '0.5rem',
+  letterSpacing: '0.05em',
 }
 
 const characterStyles: React.CSSProperties = {
-  fontSize: '0.875rem',
+  fontSize: '0.7rem',
   fontStyle: 'italic',
   textAlign: 'center',
-  marginBottom: '1.5rem',
-  color: '#cccccc',
-  lineHeight: 1.4,
+  marginBottom: '0.75rem',
+  color: 'var(--color-text-secondary, #a0b4c8)',
+  lineHeight: 1.5,
+  minHeight: '3rem',
 }
 
 const statsContainerStyles: React.CSSProperties = {
   width: '100%',
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.5rem',
+  gap: '0.25rem',
+  borderTop: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
+  paddingTop: '0.75rem',
 }
 
 const springTransition: Transition = {
   type: 'spring',
-  stiffness: 400,
-  damping: 17,
+  stiffness: 300,
+  damping: 20,
 }
 
 // Stat colors
@@ -101,11 +108,11 @@ export function TrainCard({ train, selected = false, onSelect }: TrainCardProps)
       animate={{
         opacity: 1,
         y: 0,
-        scale: selected ? 1.05 : 1,
+        scale: selected ? 1.03 : 1,
       }}
       whileHover={{
-        scale: selected ? 1.05 : 1.02,
         y: -5,
+        boxShadow: 'var(--shadow-card-hover, 0 8px 24px rgba(247, 181, 56, 0.2))',
         borderColor: '#F7B538',
       }}
       whileTap={{ scale: 0.98 }}

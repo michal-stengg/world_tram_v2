@@ -31,26 +31,27 @@ const containerStyle: React.CSSProperties = {
   flexDirection: 'column',
   height: '100%',
   minHeight: '100vh',
-  backgroundColor: 'var(--color-bg-dark, #1a1a2e)',
+  background: 'linear-gradient(180deg, #0f1829 0%, var(--color-bg-dark, #1a1a2e) 15%, var(--color-bg-dark, #1a1a2e) 100%)',
   color: 'var(--color-text, #ffffff)',
   fontFamily: 'inherit',
 }
 
 const selectionHeaderStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '2rem',
+  gap: '1.5rem',
   justifyContent: 'center',
   flexWrap: 'wrap',
-  padding: '0.75rem 1rem',
-  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+  padding: '0.6rem 1rem',
+  backgroundColor: 'var(--color-bg-panel, rgba(0, 0, 0, 0.25))',
+  borderBottom: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
 }
 
 const selectionItemStyle: React.CSSProperties = {
-  padding: '0.5rem 1rem',
-  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  borderRadius: '4px',
-  fontSize: '1rem',
+  padding: '0.4rem 0.75rem',
+  backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  borderRadius: 'var(--radius-sm, 4px)',
+  border: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
+  fontSize: '0.8rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '0.25rem',
@@ -60,13 +61,14 @@ const selectionNameStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '0.5rem',
+  color: 'var(--color-text-secondary, #a0b4c8)',
 }
 
 const resourceZoneStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
   padding: '0.5rem 1rem',
-  borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+  borderBottom: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
 }
 
 const journeyZoneStyle: React.CSSProperties = {
@@ -81,10 +83,12 @@ const journeyZoneStyle: React.CSSProperties = {
 }
 
 const journeyTitleStyle: React.CSSProperties = {
-  fontSize: '1.25rem',
+  fontSize: '1rem',
   marginBottom: '0.5rem',
   color: 'var(--color-gold, #F7B538)',
   fontWeight: 'bold',
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
 }
 
 const bottomZoneStyle: React.CSSProperties = {
@@ -93,15 +97,15 @@ const bottomZoneStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: '1rem',
   padding: '1rem',
-  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  borderTop: '2px solid rgba(255, 255, 255, 0.1)',
+  backgroundColor: 'var(--color-bg-panel, rgba(0, 0, 0, 0.25))',
+  borderTop: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
 }
 
 const goButtonContainerStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '1rem',
+  padding: '0.75rem',
 }
 
 export function DashboardScreen() {

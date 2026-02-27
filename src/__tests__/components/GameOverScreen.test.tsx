@@ -120,7 +120,7 @@ describe('GameOverScreen', () => {
       render(<GameOverScreen />)
 
       const gameOverHeading = screen.getByRole('heading', { level: 1 })
-      expect(gameOverHeading).toHaveStyle({ color: '#DB3A34' })
+      expect(gameOverHeading).toHaveStyle({ color: 'var(--color-danger, #e74c3c)' })
     })
 
     it('renders TRY AGAIN button with danger variant', () => {

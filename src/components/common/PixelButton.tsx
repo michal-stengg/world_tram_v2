@@ -18,22 +18,26 @@ const variantStyles: Record<
   primary: {
     backgroundColor: '#2D1B69',
     color: '#ffffff',
-    border: 'none',
+    border: '2px solid #4a2d9e',
+    boxShadow: '0 4px 0 #1a0f3d, 0 6px 12px rgba(0,0,0,0.3)',
   },
   secondary: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     color: '#ffffff',
-    border: '2px solid #ffffff',
+    border: '2px solid rgba(255, 255, 255, 0.4)',
+    boxShadow: '0 4px 0 rgba(255,255,255,0.08), 0 6px 12px rgba(0,0,0,0.2)',
   },
   danger: {
     backgroundColor: '#DB3A34',
     color: '#ffffff',
-    border: 'none',
+    border: '2px solid #f04e48',
+    boxShadow: '0 4px 0 #9e1f1a, 0 6px 12px rgba(0,0,0,0.3)',
   },
   gold: {
     backgroundColor: '#F7B538',
     color: '#1a1a2e',
-    border: 'none',
+    border: '2px solid #ffd06b',
+    boxShadow: '0 4px 0 #c4841d, 0 6px 12px rgba(0,0,0,0.3)',
   },
 }
 
@@ -76,9 +80,9 @@ const springTransition: Transition = {
 
 const glowKeyframes = {
   boxShadow: [
-    '0 0 5px rgba(247, 181, 56, 0.5)',
-    '0 0 20px rgba(247, 181, 56, 0.8)',
-    '0 0 5px rgba(247, 181, 56, 0.5)',
+    '0 4px 0 #c4841d, 0 0 8px rgba(247, 181, 56, 0.4)',
+    '0 4px 0 #c4841d, 0 0 25px rgba(247, 181, 56, 0.7), 0 0 50px rgba(247, 181, 56, 0.2)',
+    '0 4px 0 #c4841d, 0 0 8px rgba(247, 181, 56, 0.4)',
   ],
 }
 
@@ -124,8 +128,8 @@ export function PixelButton({
       data-variant={variant}
       data-size={size}
       data-glow={glow ? 'true' : undefined}
-      whileHover={disabled ? undefined : { scale: 1.1 }}
-      whileTap={disabled ? undefined : { scale: 0.85 }}
+      whileHover={disabled ? undefined : { scale: 1.05, y: -2 }}
+      whileTap={disabled ? undefined : { scale: 0.97, y: 3 }}
       animate={shouldGlow ? glowKeyframes : undefined}
       transition={shouldGlow ? { ...springTransition, ...glowTransition } : springTransition}
     >

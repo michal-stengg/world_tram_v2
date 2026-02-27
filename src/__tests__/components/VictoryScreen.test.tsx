@@ -119,8 +119,7 @@ describe('VictoryScreen', () => {
     it('renders celebration emojis', () => {
       render(<VictoryScreen />)
 
-      expect(screen.getByText(/🎉/)).toBeInTheDocument()
-      expect(screen.getByText(/🎊/)).toBeInTheDocument()
+      expect(screen.getByText(/🏆/)).toBeInTheDocument()
     })
 
     it('renders congratulations message', () => {
@@ -135,7 +134,7 @@ describe('VictoryScreen', () => {
       render(<VictoryScreen />)
 
       const victoryText = screen.getByText('VICTORY!')
-      expect(victoryText).toHaveStyle({ color: '#F7B538' })
+      expect(victoryText).toHaveStyle({ color: 'var(--color-gold, #F7B538)' })
     })
 
     it('renders NEW GAME button with gold variant', () => {

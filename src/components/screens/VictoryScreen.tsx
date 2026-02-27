@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { PixelButton } from '../common/PixelButton'
 import { useGameStore } from '../../stores/gameStore'
 import { calculateRating } from '../../logic/rating'
@@ -22,7 +23,7 @@ export function VictoryScreen() {
   const selectedTrain = useGameStore((state) => state.selectedTrain)
 
   const rating = calculateRating(turnCount)
-  const stars = '⭐'.repeat(rating.stars)
+  const stars = '\u2B50'.repeat(rating.stars)
 
   // Leaderboard state
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([])
@@ -91,8 +92,9 @@ export function VictoryScreen() {
         minHeight: '100vh',
         padding: '2rem',
         gap: '2rem',
-        maxWidth: '1000px',
+        maxWidth: '1100px',
         margin: '0 auto',
+        background: 'radial-gradient(ellipse at 50% 30%, #1e2a4a 0%, var(--color-bg-dark, #1a1a2e) 70%)',
       }}
     >
       {/* Left panel - existing content */}
@@ -106,100 +108,108 @@ export function VictoryScreen() {
         }}
       >
         {/* Celebration emojis */}
-        <div
+        <motion.div
           style={{
             fontSize: '3rem',
             marginBottom: '1rem',
           }}
           aria-hidden="true"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 12 }}
         >
-          🎉 🏆 🎉
-        </div>
+          🏆
+        </motion.div>
 
         {/* Victory title */}
-        <h1
+        <motion.h1
           style={{
-            fontSize: '4rem',
+            fontSize: 'var(--font-size-title, 4rem)',
             fontWeight: 'bold',
-            color: '#F7B538',
+            color: 'var(--color-gold, #F7B538)',
             margin: '0 0 1rem 0',
-            textShadow: '0 0 20px rgba(247, 181, 56, 0.5)',
+            textShadow: '3px 3px 0px rgba(196, 132, 29, 0.5), 0 0 30px rgba(247, 181, 56, 0.3)',
           }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
         >
           VICTORY!
-        </h1>
+        </motion.h1>
 
         {/* Star rating */}
-        <div
+        <motion.div
           style={{
             fontSize: '2.5rem',
             marginBottom: '0.5rem',
           }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
         >
           {stars}
-        </div>
+        </motion.div>
 
         {/* Rating title */}
-        <div
+        <motion.div
           style={{
-            fontSize: '1.5rem',
-            color: '#F7B538',
+            fontSize: '1.25rem',
+            color: 'var(--color-gold, #F7B538)',
             fontWeight: 'bold',
             marginBottom: '1.5rem',
           }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
         >
           {rating.title}
-        </div>
-
-        {/* More celebration */}
-        <div
-          style={{
-            fontSize: '2rem',
-            marginBottom: '1.5rem',
-          }}
-          aria-hidden="true"
-        >
-          🎊 🎊 🎊
-        </div>
+        </motion.div>
 
         {/* Turn count message */}
-        <p
+        <motion.p
           style={{
-            fontSize: '1.5rem',
+            fontSize: '1rem',
             color: '#ffffff',
             margin: '0 0 1.5rem 0',
-            lineHeight: '1.6',
+            lineHeight: '1.8',
           }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
         >
           You completed the journey
           <br />
-          in <strong style={{ color: '#F7B538' }}>{turnCount}</strong> turns!
-        </p>
+          in <strong style={{ color: 'var(--color-gold, #F7B538)' }}>{turnCount}</strong> turns!
+        </motion.p>
 
         {/* Statistics panel */}
-        <div
+        <motion.div
           style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            border: '2px solid rgba(247, 181, 56, 0.3)',
-            borderRadius: '12px',
+            backgroundColor: 'var(--color-bg-card, rgba(22, 33, 62, 0.8))',
+            border: 'var(--border-card, 2px solid rgba(255, 255, 255, 0.1))',
+            borderRadius: 'var(--radius-lg, 12px)',
             padding: '1.5rem',
             marginBottom: '1.5rem',
             width: '100%',
             maxWidth: '400px',
           }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
         >
           {/* Captain & Train */}
           <div
             style={{
-              fontSize: '1rem',
+              fontSize: '0.85rem',
               color: '#ffffff',
               marginBottom: '1rem',
               paddingBottom: '1rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              borderBottom: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
+              lineHeight: 1.8,
             }}
           >
-            <div>Captain: <strong style={{ color: '#F7B538' }}>{selectedCaptain?.name}</strong></div>
-            <div>Train: <strong style={{ color: '#F7B538' }}>{selectedTrain?.name}</strong></div>
+            <div>Captain: <strong style={{ color: 'var(--color-gold, #F7B538)' }}>{selectedCaptain?.name}</strong></div>
+            <div>Train: <strong style={{ color: 'var(--color-gold, #F7B538)' }}>{selectedTrain?.name}</strong></div>
           </div>
 
           {/* Final Resources */}
@@ -210,32 +220,32 @@ export function VictoryScreen() {
               gap: '0.5rem',
               marginBottom: '1rem',
               paddingBottom: '1rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+              borderBottom: 'var(--border-divider, 1px solid rgba(255, 255, 255, 0.08))',
             }}
           >
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem' }}>🍞</div>
-              <div style={{ color: '#ffffff', fontSize: '1rem' }}>{resources.food}</div>
+              <div style={{ color: '#ffffff', fontSize: '0.85rem' }}>{resources.food}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem' }}>⛽</div>
-              <div style={{ color: '#ffffff', fontSize: '1rem' }}>{resources.fuel}</div>
+              <div style={{ color: '#ffffff', fontSize: '0.85rem' }}>{resources.fuel}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem' }}>💧</div>
-              <div style={{ color: '#ffffff', fontSize: '1rem' }}>{resources.water}</div>
+              <div style={{ color: '#ffffff', fontSize: '0.85rem' }}>{resources.water}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.5rem' }}>💰</div>
-              <div style={{ color: '#ffffff', fontSize: '1rem' }}>{resources.money}</div>
+              <div style={{ color: '#ffffff', fontSize: '0.85rem' }}>{resources.money}</div>
             </div>
           </div>
 
           {/* Crew Summary */}
           <div
             style={{
-              fontSize: '0.9rem',
-              color: '#a0a0a0',
+              fontSize: '0.75rem',
+              color: 'var(--color-text-secondary, #a0b4c8)',
               marginBottom: '0.5rem',
             }}
           >
@@ -245,43 +255,57 @@ export function VictoryScreen() {
           {/* Carts */}
           <div
             style={{
-              fontSize: '0.9rem',
-              color: '#a0a0a0',
+              fontSize: '0.75rem',
+              color: 'var(--color-text-secondary, #a0b4c8)',
             }}
           >
             {ownedCarts.length} Carts Acquired
           </div>
-        </div>
+        </motion.div>
 
         {/* Encouraging message */}
-        <p
+        <motion.p
           style={{
-            fontSize: '1.25rem',
-            color: '#a0a0a0',
+            fontSize: '0.9rem',
+            color: 'var(--color-text-secondary, #a0b4c8)',
             margin: '0 0 2rem 0',
           }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
         >
           Congratulations, Captain!
-        </p>
+        </motion.p>
 
         {/* New Game button */}
-        <PixelButton
-          variant="gold"
-          size="large"
-          glow
-          onClick={handleNewGame}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1 }}
         >
-          NEW GAME
-        </PixelButton>
+          <PixelButton
+            variant="gold"
+            size="large"
+            glow
+            onClick={handleNewGame}
+          >
+            NEW GAME
+          </PixelButton>
+        </motion.div>
       </div>
 
       {/* Right panel - leaderboard section */}
-      <div style={{ flex: 1 }}>
+      <motion.div
+        style={{ flex: 1 }}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
         <h2
           style={{
-            fontSize: '1.5rem',
+            fontSize: '1.25rem',
             fontWeight: 'bold',
-            color: '#F7B538',
+            color: 'var(--color-gold, #F7B538)',
             margin: '0 0 1rem 0',
             textAlign: 'center',
           }}
@@ -292,7 +316,7 @@ export function VictoryScreen() {
           <LeaderboardNameInput onSubmit={handleSubmitName} onSkip={handleSkip} />
         ) : null}
         <Leaderboard entries={leaderboardEntries} currentEntryId={currentEntryId || undefined} />
-      </div>
+      </motion.div>
     </div>
   )
 }

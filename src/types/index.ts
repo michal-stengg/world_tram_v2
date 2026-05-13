@@ -90,7 +90,7 @@ export interface Cart {
 }
 
 // Mini-game types - different gameplay mechanics
-export type MiniGameType = 'catcher' | 'memory' | 'timing';
+export type MiniGameType = 'catcher' | 'memory' | 'timing' | 'signal' | 'sequence' | 'repair';
 
 // Mini-game reward types - what resource the player earns
 export type MiniGameRewardType = 'food' | 'money';

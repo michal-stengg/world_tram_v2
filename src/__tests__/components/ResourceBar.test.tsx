@@ -5,6 +5,7 @@ import { ResourceBar } from '../../components/game/ResourceBar'
 import { useGameStore } from '../../stores/gameStore'
 import { STARTING_RESOURCES, MAX_RESOURCES } from '../../data/constants'
 import { startingCrew } from '../../data/crew'
+import { getCartById } from '../../data/carts'
 
 describe('ResourceBar', () => {
   beforeEach(() => {
@@ -12,6 +13,7 @@ describe('ResourceBar', () => {
       useGameStore.setState({
         resources: { ...STARTING_RESOURCES },
         crew: [...startingCrew],
+        ownedCarts: [],
         turnCount: 1,
       })
     })
@@ -65,6 +67,20 @@ describe('ResourceBar', () => {
       render(<ResourceBar />)
       const moneyMeter = screen.getByTestId('resource-meter-money')
       expect(moneyMeter).toHaveTextContent(`${STARTING_RESOURCES.money}/${MAX_RESOURCES.money}`)
+    })
+
+    it('shows cart-upgraded resource maximums', () => {
+      act(() => {
+        useGameStore.setState({
+          ownedCarts: [getCartById('fuel-cart')!, getCartById('food-cart')!, getCartById('water-cart')!],
+        })
+      })
+
+      render(<ResourceBar />)
+
+      expect(screen.getByTestId('resource-meter-fuel')).toHaveTextContent(`${STARTING_RESOURCES.fuel}/250`)
+      expect(screen.getByTestId('resource-meter-food')).toHaveTextContent(`${STARTING_RESOURCES.food}/130`)
+      expect(screen.getByTestId('resource-meter-water')).toHaveTextContent(`${STARTING_RESOURCES.water}/130`)
     })
   })
 

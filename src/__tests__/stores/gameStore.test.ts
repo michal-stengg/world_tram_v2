@@ -10,7 +10,6 @@ import { getCartById } from '../../data/carts'
 import { getMiniGameByCountryId } from '../../data/minigames'
 import { getQuizByCountryId } from '../../data/quizzes'
 import type { EventResult } from '../../logic/events'
-import { countries } from '../../data/countries'
 
 // Mock data for tests
 const mockCaptain: Captain = {
@@ -830,6 +829,21 @@ describe('gameStore', () => {
       expect(state.ownedCarts.map(c => c.id)).toEqual(['fuel-cart', 'food-cart', 'water-cart'])
       expect(state.resources.money).toBe(500 - 100 - 80 - 70)
     })
+
+    it('purchaseCart does nothing when cart is already owned', () => {
+      const fuelCart = getCartById('fuel-cart')!
+      useGameStore.setState({
+        resources: { ...STARTING_RESOURCES, money: 500 },
+        ownedCarts: [fuelCart],
+      })
+
+      const { purchaseCart } = useGameStore.getState()
+      purchaseCart('fuel-cart')
+
+      const state = useGameStore.getState()
+      expect(state.ownedCarts).toHaveLength(1)
+      expect(state.resources.money).toBe(500)
+    })
   })
 
   describe('mini-game actions', () => {
@@ -851,19 +865,20 @@ describe('gameStore', () => {
       expect(state.currentMiniGame).toBeNull()
     })
 
-    it('completeMiniGame calculates and applies money reward for France', () => {
-      // Set up mini-game with money reward (France's Croissant Catcher has maxReward: 38)
+    it('completeMiniGame calculates and applies food reward for France', () => {
+      // Set up mini-game with food reward (France's Croissant Catcher has maxReward: 38)
       const franceMiniGame = getMiniGameByCountryId('france')!
       useGameStore.setState({
         currentMiniGame: franceMiniGame,
-        resources: { ...STARTING_RESOURCES, money: 50 },
+        resources: { ...STARTING_RESOURCES, food: 50, money: 50 },
       })
 
       const { completeMiniGame } = useGameStore.getState()
       completeMiniGame(10, 10) // Perfect score = maxReward of 38
 
       const state = useGameStore.getState()
-      expect(state.resources.money).toBe(50 + 38) // money increased by reward
+      expect(state.resources.food).toBe(50 + 38) // food increased by reward
+      expect(state.resources.money).toBe(50)
       expect(state.lastMiniGameResult).toEqual({
         score: 10,
         maxScore: 10,

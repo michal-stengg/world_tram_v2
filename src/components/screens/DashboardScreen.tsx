@@ -20,7 +20,7 @@ import { useGameStore } from '../../stores/gameStore'
 import { useModalOrchestrator } from '../../hooks/useModalOrchestrator'
 import { countries } from '../../data/countries'
 import { getPricesForCountry } from '../../data/shopPrices'
-import { MAX_RESOURCES } from '../../data/constants'
+import { getEffectiveMaxResources } from '../../logic/carts'
 import { resolveEvent } from '../../logic/events'
 import { rollDice } from '../../logic/dice'
 import type { EventResult } from '../../logic/events'
@@ -133,6 +133,7 @@ export function DashboardScreen() {
   const crew = useGameStore((state) => state.crew)
   const ownedCarts = useGameStore((state) => state.ownedCarts)
   const purchaseCart = useGameStore((state) => state.purchaseCart)
+  const maxResources = getEffectiveMaxResources(ownedCarts)
 
   // Shop state
   const shopCart = useGameStore((state) => state.shopCart)
@@ -469,7 +470,7 @@ export function DashboardScreen() {
             ownedCarts={ownedCarts}
             prices={countryPrices.prices}
             shopCart={shopCart}
-            maxResources={MAX_RESOURCES}
+            maxResources={maxResources}
             currentResources={resources}
             countryTheme={countryPrices.theme}
             onPurchaseCart={handlePurchaseCart}

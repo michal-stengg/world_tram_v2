@@ -11,7 +11,8 @@ import {
   calculateFoodProduction,
   getCrewCountByRole,
 } from './resources'
-import type { CrewMember, Captain, Train } from '../types'
+import { calculateFuelEfficiencyBonus } from './carts'
+import type { CrewMember, Captain, Train, Cart } from '../types'
 
 export interface ResourcePreview {
   food: number
@@ -27,7 +28,8 @@ export interface ResourcePreview {
 export function calculateResourcePreview(
   crew: CrewMember[],
   captain: Captain | null,
-  train: Train | null
+  train: Train | null,
+  ownedCarts: Cart[] = []
 ): ResourcePreview {
   // If no captain or train selected, return zeros
   if (!captain || !train) {
@@ -36,9 +38,10 @@ export function calculateResourcePreview(
 
   const crewCount = crew.length
   const engineerCount = getCrewCountByRole(crew, 'engineer')
+  const fuelEfficiencyBonus = calculateFuelEfficiencyBonus(ownedCarts)
 
   // Calculate consumption (negative values)
-  const fuelConsumption = calculateFuelConsumption(0, train.stats.power, engineerCount)
+  const fuelConsumption = calculateFuelConsumption(0, train.stats.power, engineerCount, fuelEfficiencyBonus)
   const foodConsumption = calculateFoodConsumption(crewCount)
   const waterConsumption = calculateWaterConsumption(crewCount)
   const wages = calculateWages(crew)

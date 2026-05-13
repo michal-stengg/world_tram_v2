@@ -67,6 +67,24 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
     catcherXRef.current = clampedX
   }, [])
 
+  const moveCatcherToPointer = useCallback((clientX: number, element: HTMLElement) => {
+    const bounds = element.getBoundingClientRect()
+    if (bounds.width === 0) return
+
+    const xPercent = ((clientX - bounds.left) / bounds.width) * 100
+    updateCatcherPosition(xPercent)
+  }, [updateCatcherPosition])
+
+  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (gameState !== 'playing') return
+    moveCatcherToPointer(event.clientX, event.currentTarget)
+  }, [gameState, moveCatcherToPointer])
+
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (gameState !== 'playing') return
+    moveCatcherToPointer(event.clientX, event.currentTarget)
+  }, [gameState, moveCatcherToPointer])
+
   const startGame = useCallback(() => {
     setGameState('playing')
     setTimeRemaining(GAME_DURATION)
@@ -231,6 +249,7 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
     borderRadius: '8px',
     border: '2px solid #F7B538',
     overflow: 'hidden',
+    touchAction: 'none',
   }
 
   const catcherStyle: React.CSSProperties = {
@@ -309,7 +328,7 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
             </div>
           </div>
           <p style={instructionsStyle}>
-            Use Arrow Keys to move left and right
+            Use Arrow Keys or touch the play area to move left and right
           </p>
           <PixelButton onClick={startGame} variant="gold" glow>
             Start
@@ -329,7 +348,13 @@ export function CatcherGame({ miniGame, onComplete, onSkip }: CatcherGameProps) 
               <span style={{ fontWeight: 'bold' }}>{score}</span>
             </div>
           </div>
-          <div style={playAreaStyle}>
+          <div
+            style={playAreaStyle}
+            data-testid="catcher-play-area"
+            onPointerDown={handlePointerMove}
+            onPointerMove={handlePointerMove}
+            onMouseMove={handleMouseMove}
+          >
             {items.map(item => (
               <div
                 key={item.id}

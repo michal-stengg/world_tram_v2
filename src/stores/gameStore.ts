@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { GameScreen, Captain, Train, Resources, CrewMember, Cart, MiniGame, MiniGameResult, CargoItem, CargoDiscovery, CargoReward, CountryQuiz, QuizResult, ResourceCart, ResourcePrices } from '../types'
-import { STARTING_RESOURCES, MAX_RESOURCES } from '../data/constants'
+import type { GameScreen, Captain, Train, Resources, CrewMember, CrewRole, Cart, MiniGame, MiniGameResult, CargoItem, CargoDiscovery, CargoReward, CountryQuiz, QuizResult, ResourceCart, ResourcePrices } from '../types'
+import { STARTING_RESOURCES } from '../data/constants'
 import { startingCrew } from '../data/crew'
 import { processTurn } from '../logic/turn'
 import type { TurnResult } from '../logic/turn'
@@ -10,7 +10,7 @@ import type { BonusCard } from '../data/cards'
 import type { GameEvent } from '../data/events'
 import type { EventResult } from '../logic/events'
 import { drawInitialHand, playCards, replenishHand } from '../logic/cards'
-import { canPurchaseCart } from '../logic/carts'
+import { canPurchaseCart, calculateSecurityBonus as calculateCartSecurityBonus, getEffectiveMaxResources } from '../logic/carts'
 import { getCartById } from '../data/carts'
 import { getMiniGameByCountryId } from '../data/minigames'
 import { calculateMiniGameReward } from '../logic/minigames'
@@ -68,6 +68,7 @@ interface GameActions {
   triggerVictory: () => void
   clearTurnResult: () => void
   cycleCrewRole: (crewMemberId: string) => void
+  setCrewRole: (crewMemberId: string, role: CrewRole) => void
   // Card actions
   initializeCards: () => void
   selectCard: (cardId: string) => void
@@ -204,7 +205,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   executeTurn: () => {
     const state = get()
-    const { selectedCaptain, selectedTrain, crew, resources, currentCountryIndex, progressInCountry, turnCount } = state
+    const { selectedCaptain, selectedTrain, crew, resources, currentCountryIndex, progressInCountry, turnCount, ownedCarts } = state
 
     // Can't execute turn without captain and train
     if (!selectedCaptain || !selectedTrain) return
@@ -217,6 +218,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       currentCountryIndex,
       progressInCountry,
       turnCount,
+      ownedCarts,
     })
 
     // Update state with turn result
@@ -255,6 +257,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return { crew: updatedCrew }
   }),
 
+  setCrewRole: (crewMemberId: string, role: CrewRole) => set((state) => {
+    if (!state.crew.some(c => c.id === crewMemberId)) {
+      return state
+    }
+
+    return {
+      crew: state.crew.map(c =>
+        c.id === crewMemberId ? { ...c, role } : c
+      ),
+    }
+  }),
+
   // Card actions
   initializeCards: () => set({
     cardHand: drawInitialHand(),
@@ -286,7 +300,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Apply penalties if event failed
     if (eventResult && !eventResult.success && eventResult.penalty) {
       const securityCount = state.crew.filter(c => c.role === 'security').length
-      const securityMultiplier = calculateSecurityBonus(securityCount)
+      const cartSecurityBonus = calculateCartSecurityBonus(state.ownedCarts)
+      const securityMultiplier = calculateSecurityBonus(securityCount + cartSecurityBonus)
       const reducedAmount = Math.floor(eventResult.penalty.amount * securityMultiplier)
 
       const newResources = { ...state.resources }
@@ -339,6 +354,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     // Check if player can afford it
     if (!canPurchaseCart(cart, state.resources.money)) {
+      return
+    }
+
+    // Carts are unique upgrades; owning one already blocks repeat purchase.
+    if (state.ownedCarts.some((ownedCart) => ownedCart.id === cart.id)) {
       return
     }
 
@@ -546,7 +566,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     // Apply purchase
-    const newResources = applyPurchase(state.resources, state.shopCart, MAX_RESOURCES)
+    const maxResources = getEffectiveMaxResources(state.ownedCarts)
+    const newResources = applyPurchase(state.resources, state.shopCart, maxResources)
 
     set({
       resources: {

@@ -534,7 +534,7 @@ describe('Phase 7: Events Integration', () => {
     it('shows event modal before station modal when both trigger', () => {
       mockConfig.shouldTriggerEvent = true
       mockConfig.selectedEvent = engineeringEvent
-      mockConfig.movement = 10 // Enough to reach next country
+      mockConfig.movement = 17 // Movement 17 + speed 3 = 20, enough to reach next country
       mockConfig.diceRoll = 6
 
       render(<App />)
@@ -551,7 +551,7 @@ describe('Phase 7: Events Integration', () => {
     it('shows station modal after event is resolved', () => {
       mockConfig.shouldTriggerEvent = true
       mockConfig.selectedEvent = engineeringEvent
-      mockConfig.movement = 10 // Enough to reach next country
+      mockConfig.movement = 17 // Movement 17 + speed 3 = 20, enough to reach next country
       mockConfig.diceRoll = 6
 
       render(<App />)
@@ -573,7 +573,7 @@ describe('Phase 7: Events Integration', () => {
     it('shows turn result after dismissing station modal', () => {
       mockConfig.shouldTriggerEvent = true
       mockConfig.selectedEvent = engineeringEvent
-      mockConfig.movement = 10
+      mockConfig.movement = 17
       mockConfig.diceRoll = 6
 
       render(<App />)
@@ -598,7 +598,7 @@ describe('Phase 7: Events Integration', () => {
     it('game continues normally after full event + station flow', () => {
       mockConfig.shouldTriggerEvent = true
       mockConfig.selectedEvent = engineeringEvent
-      mockConfig.movement = 10
+      mockConfig.movement = 17
       mockConfig.diceRoll = 6
 
       // Give plenty of resources

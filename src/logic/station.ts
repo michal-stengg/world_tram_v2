@@ -9,6 +9,11 @@ export type StationReward = {
   moneyEarned: number
 }
 
+type StationArrivalOptions = {
+  maxWater?: number
+  incomeBonus?: number
+}
+
 // Station reward constants
 const BASE_STATION_MONEY = 10
 const SECURITY_MONEY_MULTIPLIER = 5
@@ -24,14 +29,18 @@ const SECURITY_MONEY_MULTIPLIER = 5
 export function processStationArrival(
   _country: Country,
   captainSecurityStat: number,
-  currentWater: number
+  currentWater: number,
+  options: StationArrivalOptions = {}
 ): StationReward {
+  const maxWater = options.maxWater ?? MAX_RESOURCES.water
+  const incomeBonus = Math.max(0, options.incomeBonus ?? 0)
+
   // Water refills to max - calculate how much needs to be added
-  const waterRefill = Math.max(0, MAX_RESOURCES.water - currentWater)
+  const waterRefill = Math.max(0, maxWater - currentWater)
 
   // Money earned is based on captain's security stat
   // Higher security = better negotiation/protection = more money
-  const moneyEarned = BASE_STATION_MONEY + captainSecurityStat * SECURITY_MONEY_MULTIPLIER
+  const moneyEarned = BASE_STATION_MONEY + captainSecurityStat * SECURITY_MONEY_MULTIPLIER + incomeBonus
 
   return {
     waterRefill,

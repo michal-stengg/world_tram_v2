@@ -72,6 +72,39 @@ vi.mock('../../components/minigames/MemoryGame', () => ({
   ),
 }))
 
+vi.mock('../../components/minigames/SignalSwitchGame', () => ({
+  SignalSwitchGame: ({ onComplete, onSkip }: { onComplete: (score: number, maxScore: number) => void; onSkip: () => void }) => (
+    <div>
+      <button data-testid="mock-signal-complete" onClick={() => onComplete(5, 5)}>
+        Complete Signal Game
+      </button>
+      <button onClick={onSkip}>Skip</button>
+    </div>
+  ),
+}))
+
+vi.mock('../../components/minigames/LanternSequenceGame', () => ({
+  LanternSequenceGame: ({ onComplete, onSkip }: { onComplete: (score: number, maxScore: number) => void; onSkip: () => void }) => (
+    <div>
+      <button data-testid="mock-sequence-complete" onClick={() => onComplete(4, 4)}>
+        Complete Sequence Game
+      </button>
+      <button onClick={onSkip}>Skip</button>
+    </div>
+  ),
+}))
+
+vi.mock('../../components/minigames/TrackRepairGame', () => ({
+  TrackRepairGame: ({ onComplete, onSkip }: { onComplete: (score: number, maxScore: number) => void; onSkip: () => void }) => (
+    <div>
+      <button data-testid="mock-repair-complete" onClick={() => onComplete(5, 5)}>
+        Complete Repair Game
+      </button>
+      <button onClick={onSkip}>Skip</button>
+    </div>
+  ),
+}))
+
 // Mock QuizModal component to enable controlled testing
 vi.mock('../../components/game/QuizModal', () => ({
   QuizModal: ({ onComplete, onSkip }: { onComplete: (correctCount: number) => void; onSkip: () => void }) => (
@@ -1690,7 +1723,7 @@ describe('DashboardScreen', () => {
       act(() => {
         useGameStore.setState({
           lastTurnResult: mockTurnResultWithStation,
-          currentCountryIndex: 1, // Germany - timing game with money reward
+          currentCountryIndex: 1, // Germany - signal game with money reward
           currentEvent: null,
           resources: { food: 50, fuel: 50, water: 100, money: 100 },
         })
@@ -1701,7 +1734,7 @@ describe('DashboardScreen', () => {
       fireEvent.click(screen.getByRole('button', { name: /play mini-game/i }))
 
       // Complete the game using the mock button (triggers MiniGameModal's handleGameComplete)
-      fireEvent.click(screen.getByTestId('mock-timing-complete'))
+      fireEvent.click(screen.getByTestId('mock-signal-complete'))
 
       // Click "Collect Reward" to finalize (triggers DashboardScreen's handleMiniGameComplete)
       fireEvent.click(screen.getByRole('button', { name: /collect reward/i }))
@@ -1720,7 +1753,7 @@ describe('DashboardScreen', () => {
       act(() => {
         useGameStore.setState({
           lastTurnResult: mockTurnResultWithStation,
-          currentCountryIndex: 1, // Germany - timing game
+          currentCountryIndex: 1, // Germany - signal game
           currentEvent: null,
           resources: { food: 50, fuel: 50, water: 100, money: 100 },
         })
@@ -1731,7 +1764,7 @@ describe('DashboardScreen', () => {
       fireEvent.click(screen.getByRole('button', { name: /play mini-game/i }))
 
       // Complete the game using the mock button
-      fireEvent.click(screen.getByTestId('mock-timing-complete'))
+      fireEvent.click(screen.getByTestId('mock-signal-complete'))
 
       // Click "Collect Reward" to finalize
       fireEvent.click(screen.getByRole('button', { name: /collect reward/i }))

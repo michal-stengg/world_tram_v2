@@ -28,7 +28,7 @@ describe('Phase 9: Mini-Games Integration', () => {
 
     test('mini-games have valid types', () => {
       minigames.forEach(game => {
-        expect(['catcher', 'timing', 'memory']).toContain(game.type)
+        expect(['catcher', 'timing', 'memory', 'signal', 'sequence', 'repair']).toContain(game.type)
       })
     })
 
@@ -121,7 +121,7 @@ describe('Phase 9: Mini-Games Integration', () => {
         startMiniGame('france')
       })
 
-      // Complete with half score (7/15) - should give ~12 money (47% of 25 max)
+      // Complete with half score (7/15) - should give a proportional food reward
       act(() => {
         completeMiniGame(7, 15)
       })
@@ -131,7 +131,8 @@ describe('Phase 9: Mini-Games Integration', () => {
       expect(currentMiniGame).toBeNull()
       expect(lastMiniGameResult).not.toBeNull()
       expect(lastMiniGameResult!.score).toBe(7)
-      expect(resources.money).toBeGreaterThan(initialResources.money)
+      expect(resources.food).toBeGreaterThan(initialResources.food)
+      expect(resources.money).toBe(initialResources.money)
     })
 
     test('completeMiniGame applies money reward correctly', () => {
@@ -229,17 +230,17 @@ describe('Phase 9: Mini-Games Integration', () => {
       })
 
       const { startMiniGame, completeMiniGame } = useGameStore.getState()
-      const initialMoney = useGameStore.getState().resources.money
+      const initialFood = useGameStore.getState().resources.food
 
       act(() => {
-        startMiniGame('france') // money reward, max 38
+        startMiniGame('france') // food reward, max 38
       })
       act(() => {
         completeMiniGame(15, 15)
       })
 
       const { resources, lastMiniGameResult } = useGameStore.getState()
-      expect(resources.money).toBe(initialMoney + 38)
+      expect(resources.food).toBe(initialFood + 38)
       expect(lastMiniGameResult!.reward).toBe(38)
     })
 
@@ -276,17 +277,17 @@ describe('Phase 9: Mini-Games Integration', () => {
       })
 
       const { startMiniGame, completeMiniGame } = useGameStore.getState()
-      const initialMoney = useGameStore.getState().resources.money
+      const initialFood = useGameStore.getState().resources.food
 
       act(() => {
-        startMiniGame('france') // money reward, max 38
+        startMiniGame('france') // food reward, max 38
       })
       act(() => {
         completeMiniGame(20, 15) // exceeds max score
       })
 
       const { resources, lastMiniGameResult } = useGameStore.getState()
-      expect(resources.money).toBe(initialMoney + 38)
+      expect(resources.food).toBe(initialFood + 38)
       expect(lastMiniGameResult!.reward).toBe(38)
     })
 
@@ -385,14 +386,14 @@ describe('Phase 9: Mini-Games Integration', () => {
       const game = getMiniGameByCountryId('france')
       expect(game!.name).toBe('Croissant Catcher')
       expect(game!.type).toBe('catcher')
-      expect(game!.rewardType).toBe('money')
+      expect(game!.rewardType).toBe('food')
       expect(game!.maxReward).toBe(38)
     })
 
-    test('Germany mini-game is Beer Stein Balance', () => {
+    test('Germany mini-game is Signal Switch', () => {
       const game = getMiniGameByCountryId('germany')
-      expect(game!.name).toBe('Beer Stein Balance')
-      expect(game!.type).toBe('timing')
+      expect(game!.name).toBe('Signal Switch')
+      expect(game!.type).toBe('signal')
       expect(game!.rewardType).toBe('money')
       expect(game!.maxReward).toBe(75)
     })
@@ -405,11 +406,11 @@ describe('Phase 9: Mini-Games Integration', () => {
       expect(game!.maxReward).toBe(60)
     })
 
-    test('China mini-game is Dumpling Catch', () => {
+    test('China mini-game is Lantern Sequence', () => {
       const game = getMiniGameByCountryId('china')
-      expect(game!.name).toBe('Dumpling Catch')
-      expect(game!.type).toBe('catcher')
-      expect(game!.rewardType).toBe('money')
+      expect(game!.name).toBe('Lantern Sequence')
+      expect(game!.type).toBe('sequence')
+      expect(game!.rewardType).toBe('food')
       expect(game!.maxReward).toBe(38)
     })
 
@@ -417,7 +418,7 @@ describe('Phase 9: Mini-Games Integration', () => {
       const game = getMiniGameByCountryId('japan')
       expect(game!.name).toBe('Sushi Sort')
       expect(game!.type).toBe('timing')
-      expect(game!.rewardType).toBe('money')
+      expect(game!.rewardType).toBe('food')
       expect(game!.maxReward).toBe(38)
     })
 
@@ -429,10 +430,10 @@ describe('Phase 9: Mini-Games Integration', () => {
       expect(game!.maxReward).toBe(75)
     })
 
-    test('Australia mini-game is Boomerang Catch', () => {
+    test('Australia mini-game is Track Repair', () => {
       const game = getMiniGameByCountryId('australia')
-      expect(game!.name).toBe('Boomerang Catch')
-      expect(game!.type).toBe('timing')
+      expect(game!.name).toBe('Track Repair')
+      expect(game!.type).toBe('repair')
       expect(game!.rewardType).toBe('money')
       expect(game!.maxReward).toBe(60)
     })
@@ -449,7 +450,7 @@ describe('Phase 9: Mini-Games Integration', () => {
       const game = getMiniGameByCountryId('canada')
       expect(game!.name).toBe('Maple Syrup Pour')
       expect(game!.type).toBe('timing')
-      expect(game!.rewardType).toBe('money')
+      expect(game!.rewardType).toBe('food')
       expect(game!.maxReward).toBe(38)
     })
 
@@ -457,7 +458,7 @@ describe('Phase 9: Mini-Games Integration', () => {
       const game = getMiniGameByCountryId('usa')
       expect(game!.name).toBe('Hot Dog Stack')
       expect(game!.type).toBe('catcher')
-      expect(game!.rewardType).toBe('money')
+      expect(game!.rewardType).toBe('food')
       expect(game!.maxReward).toBe(38)
     })
   })
@@ -478,9 +479,26 @@ describe('Phase 9: Mini-Games Integration', () => {
       expect(memoryGames.length).toBeGreaterThan(0)
     })
 
-    test('all mini-games have money reward type', () => {
+    test('there are mini-games of type signal', () => {
+      const signalGames = minigames.filter(g => g.type === 'signal')
+      expect(signalGames.length).toBeGreaterThan(0)
+    })
+
+    test('there are mini-games of type sequence', () => {
+      const sequenceGames = minigames.filter(g => g.type === 'sequence')
+      expect(sequenceGames.length).toBeGreaterThan(0)
+    })
+
+    test('there are mini-games of type repair', () => {
+      const repairGames = minigames.filter(g => g.type === 'repair')
+      expect(repairGames.length).toBeGreaterThan(0)
+    })
+
+    test('mini-games use both food and money reward types', () => {
       const moneyGames = minigames.filter(g => g.rewardType === 'money')
-      expect(moneyGames.length).toBe(minigames.length)
+      const foodGames = minigames.filter(g => g.rewardType === 'food')
+      expect(moneyGames.length).toBeGreaterThan(0)
+      expect(foodGames.length).toBeGreaterThan(0)
     })
   })
 

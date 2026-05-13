@@ -15,9 +15,15 @@ import { processStationArrival } from './station'
 import type { StationReward } from './station'
 import { shouldTriggerEvent, selectRandomEvent } from './events'
 import { shouldDiscoverCargo, selectRandomCargo } from './cargo'
+import {
+  calculateFuelEfficiencyBonus,
+  calculateIncomeBonus,
+  calculateSecurityBonus as calculateCartSecurityBonus,
+  getEffectiveMaxResources,
+} from './carts'
 import { countries } from '../data/countries'
 import type { GameEvent } from '../data/events'
-import type { Captain, Train, CrewMember, Resources, CargoItem } from '../types'
+import type { Captain, Train, CrewMember, Resources, CargoItem, Cart } from '../types'
 
 export interface GameState {
   captain: Captain
@@ -27,6 +33,7 @@ export interface GameState {
   currentCountryIndex: number
   progressInCountry: number
   turnCount: number
+  ownedCarts?: Cart[]
 }
 
 export type GameStatus = 'playing' | 'victory' | 'gameOver'
@@ -67,8 +74,16 @@ export function processTurn(state: GameState): TurnResult {
   )
 
   // 4. Calculate resource consumption
+  const ownedCarts = state.ownedCarts ?? []
+  const maxResources = getEffectiveMaxResources(ownedCarts)
   const engineerCount = getCrewCountByRole(state.crew, 'engineer')
-  const fuelConsumption = calculateFuelConsumption(movement, state.train.stats.power, engineerCount)
+  const fuelEfficiencyBonus = calculateFuelEfficiencyBonus(ownedCarts)
+  const fuelConsumption = calculateFuelConsumption(
+    movement,
+    state.train.stats.power,
+    engineerCount,
+    fuelEfficiencyBonus
+  )
   const foodConsumption = calculateFoodConsumption(state.crew.length)
   const waterConsumption = calculateWaterConsumption(state.crew.length)
   const wages = calculateWages(state.crew)
@@ -85,22 +100,30 @@ export function processTurn(state: GameState): TurnResult {
   }
 
   // 7. Apply changes
-  let newResources = applyResourceChanges(state.resources, resourceChanges)
+  let newResources = applyResourceChanges(state.resources, resourceChanges, maxResources)
 
   // 8. Process station arrival if we reached a new country
   let stationReward: StationReward | undefined
   if (advanceResult.arrivedAtNextCountry) {
     const arrivedCountry = countries[advanceResult.newCountryIndex]
+    const securityCrewCount = getCrewCountByRole(state.crew, 'security')
+    const cartSecurityBonus = calculateCartSecurityBonus(ownedCarts)
+    const stationIncomeBonus = calculateIncomeBonus(ownedCarts) + (securityCrewCount + cartSecurityBonus) * 5
+
     stationReward = processStationArrival(
       arrivedCountry,
       state.captain.stats.security,
-      newResources.water
+      newResources.water,
+      {
+        maxWater: maxResources.water,
+        incomeBonus: stationIncomeBonus,
+      }
     )
     // Apply station rewards to resources
     newResources = {
       ...newResources,
-      water: newResources.water + stationReward.waterRefill,
-      money: newResources.money + stationReward.moneyEarned,
+      water: Math.min(maxResources.water, newResources.water + stationReward.waterRefill),
+      money: Math.min(maxResources.money, newResources.money + stationReward.moneyEarned),
     }
     // Update resourceChanges to include station rewards for accurate display
     resourceChanges.water += stationReward.waterRefill

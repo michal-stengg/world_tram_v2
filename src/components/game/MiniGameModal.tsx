@@ -3,6 +3,9 @@ import { PixelButton } from '../common/PixelButton'
 import { CatcherGame } from '../minigames/CatcherGame'
 import { TimingGame } from '../minigames/TimingGame'
 import { MemoryGame } from '../minigames/MemoryGame'
+import { SignalSwitchGame } from '../minigames/SignalSwitchGame'
+import { LanternSequenceGame } from '../minigames/LanternSequenceGame'
+import { TrackRepairGame } from '../minigames/TrackRepairGame'
 import { calculateMiniGameReward } from '../../logic/minigames'
 import type { MiniGame } from '../../types'
 
@@ -83,6 +86,12 @@ export function MiniGameModal({ miniGame, onComplete, onSkip }: MiniGameModalPro
         return <TimingGame miniGame={miniGame} onComplete={handleGameComplete} onSkip={onSkip} />
       case 'memory':
         return <MemoryGame miniGame={miniGame} onComplete={handleGameComplete} onSkip={onSkip} />
+      case 'signal':
+        return <SignalSwitchGame miniGame={miniGame} onComplete={handleGameComplete} onSkip={onSkip} />
+      case 'sequence':
+        return <LanternSequenceGame miniGame={miniGame} onComplete={handleGameComplete} onSkip={onSkip} />
+      case 'repair':
+        return <TrackRepairGame miniGame={miniGame} onComplete={handleGameComplete} onSkip={onSkip} />
     }
   }
 

@@ -217,6 +217,40 @@ describe('CatcherGame', () => {
       const newLeft = catcher.style.left
       expect(parseFloat(newLeft)).toBeGreaterThan(parseFloat(initialLeft))
     })
+
+    it('pointer movement on play area moves catcher for touch controls', () => {
+      render(
+        <CatcherGame
+          miniGame={testMiniGame}
+          onComplete={mockOnComplete}
+          onSkip={mockOnSkip}
+        />
+      )
+
+      const startButton = screen.getByRole('button', { name: /start/i })
+      fireEvent.click(startButton)
+
+      const playArea = screen.getByTestId('catcher-play-area')
+      const catcher = screen.getByTestId('catcher')
+
+      vi.spyOn(playArea, 'getBoundingClientRect').mockReturnValue({
+        left: 0,
+        top: 0,
+        width: 400,
+        height: 300,
+        right: 400,
+        bottom: 300,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      })
+
+      act(() => {
+        fireEvent.mouseMove(playArea, { clientX: 320 })
+      })
+
+      expect(catcher).toHaveStyle({ left: '80%' })
+    })
   })
 
   describe('game completion', () => {

@@ -27,7 +27,7 @@ describe('minigames data', () => {
 
         // type field (must be one of the valid types)
         expect(minigame.type).toBeDefined();
-        expect(['catcher', 'memory', 'timing']).toContain(minigame.type);
+        expect(['catcher', 'memory', 'timing', 'signal', 'sequence', 'repair']).toContain(minigame.type);
 
         // icon field
         expect(minigame.icon).toBeDefined();
@@ -84,18 +84,18 @@ describe('minigames data', () => {
         france: {
           name: 'Croissant Catcher',
           type: 'catcher',
-          rewardType: 'money',
+          rewardType: 'food',
           maxReward: 38,
           icon: '🥐',
           description: 'Catch falling croissants!',
         },
         germany: {
-          name: 'Beer Stein Balance',
-          type: 'timing',
+          name: 'Signal Switch',
+          type: 'signal',
           rewardType: 'money',
           maxReward: 75,
-          icon: '🍺',
-          description: 'Balance the stein at the right moment!',
+          icon: '🚦',
+          description: 'Switch the railway signals in the right order!',
         },
         russia: {
           name: 'Matryoshka Match',
@@ -106,17 +106,17 @@ describe('minigames data', () => {
           description: 'Match the nesting dolls!',
         },
         china: {
-          name: 'Dumpling Catch',
-          type: 'catcher',
-          rewardType: 'money',
+          name: 'Lantern Sequence',
+          type: 'sequence',
+          rewardType: 'food',
           maxReward: 38,
-          icon: '🥟',
-          description: 'Catch the dumplings!',
+          icon: '🏮',
+          description: 'Repeat the lantern pattern!',
         },
         japan: {
           name: 'Sushi Sort',
           type: 'timing',
-          rewardType: 'money',
+          rewardType: 'food',
           maxReward: 38,
           icon: '🍣',
           description: 'Sort sushi at the perfect time!',
@@ -130,12 +130,12 @@ describe('minigames data', () => {
           description: 'Grab treats at the night market!',
         },
         australia: {
-          name: 'Boomerang Catch',
-          type: 'timing',
+          name: 'Track Repair',
+          type: 'repair',
           rewardType: 'money',
           maxReward: 60,
-          icon: '🪃',
-          description: 'Time your catch perfectly!',
+          icon: '🛠️',
+          description: 'Repair the cracked rail tiles!',
         },
         brazil: {
           name: 'Carnival Rhythm',
@@ -148,7 +148,7 @@ describe('minigames data', () => {
         canada: {
           name: 'Maple Syrup Pour',
           type: 'timing',
-          rewardType: 'money',
+          rewardType: 'food',
           maxReward: 38,
           icon: '🍁',
           description: 'Pour the perfect amount!',
@@ -156,7 +156,7 @@ describe('minigames data', () => {
         usa: {
           name: 'Hot Dog Stack',
           type: 'catcher',
-          rewardType: 'money',
+          rewardType: 'food',
           maxReward: 38,
           icon: '🌭',
           description: 'Stack those hot dogs!',

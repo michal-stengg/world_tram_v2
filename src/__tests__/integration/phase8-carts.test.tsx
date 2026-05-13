@@ -16,8 +16,10 @@ import {
 } from '../../logic/carts'
 
 // Mock the dice roll to get consistent results for testing
+// With DISTANCE_PER_COUNTRY = 20 and train speed = 3, we need movement >= 20
+// So dice roll of 17 + speed 3 = 20, which crosses exactly one country
 vi.mock('../../logic/dice', () => ({
-  rollMovement: () => 10, // Fixed dice roll of 10 to guarantee arrival at new country
+  rollMovement: () => 17, // Fixed dice roll of 17 to guarantee arrival at new country
   rollDice: () => 6, // Fixed dice roll for event resolution
 }))
 

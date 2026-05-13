@@ -78,8 +78,8 @@ describe('Game Balance Constants', () => {
       expect(DICE_MAX).toBe(10);
     });
 
-    it('should have DISTANCE_PER_COUNTRY at 10', () => {
-      expect(DISTANCE_PER_COUNTRY).toBe(10);
+    it('should have DISTANCE_PER_COUNTRY at 20', () => {
+      expect(DISTANCE_PER_COUNTRY).toBe(20);
     });
   });
 

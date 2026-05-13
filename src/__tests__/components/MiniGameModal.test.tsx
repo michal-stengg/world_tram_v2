@@ -35,7 +35,7 @@ describe('MiniGameModal', () => {
   })
 
   describe('with timing type', () => {
-    const timingGame = getMiniGameByCountryId('germany')! // Beer Stein Balance
+    const timingGame = getMiniGameByCountryId('japan')! // Sushi Sort
 
     it('renders TimingGame for timing type', () => {
       render(
@@ -47,8 +47,59 @@ describe('MiniGameModal', () => {
       )
 
       // TimingGame shows the game name and description
-      expect(screen.getByText('Beer Stein Balance')).toBeInTheDocument()
-      expect(screen.getByText('Balance the stein at the right moment!')).toBeInTheDocument()
+      expect(screen.getByText('Sushi Sort')).toBeInTheDocument()
+      expect(screen.getByText('Sort sushi at the perfect time!')).toBeInTheDocument()
+    })
+  })
+
+  describe('with signal type', () => {
+    const signalGame = getMiniGameByCountryId('germany')!
+
+    it('renders SignalSwitchGame for signal type', () => {
+      render(
+        <MiniGameModal
+          miniGame={signalGame}
+          onComplete={mockOnComplete}
+          onSkip={mockOnSkip}
+        />
+      )
+
+      expect(screen.getByText('Signal Switch')).toBeInTheDocument()
+      expect(screen.getByText('Switch the railway signals in the right order!')).toBeInTheDocument()
+    })
+  })
+
+  describe('with sequence type', () => {
+    const sequenceGame = getMiniGameByCountryId('china')!
+
+    it('renders LanternSequenceGame for sequence type', () => {
+      render(
+        <MiniGameModal
+          miniGame={sequenceGame}
+          onComplete={mockOnComplete}
+          onSkip={mockOnSkip}
+        />
+      )
+
+      expect(screen.getByText('Lantern Sequence')).toBeInTheDocument()
+      expect(screen.getByText('Repeat the lantern pattern!')).toBeInTheDocument()
+    })
+  })
+
+  describe('with repair type', () => {
+    const repairGame = getMiniGameByCountryId('australia')!
+
+    it('renders TrackRepairGame for repair type', () => {
+      render(
+        <MiniGameModal
+          miniGame={repairGame}
+          onComplete={mockOnComplete}
+          onSkip={mockOnSkip}
+        />
+      )
+
+      expect(screen.getByText('Track Repair')).toBeInTheDocument()
+      expect(screen.getByText('Repair the cracked rail tiles!')).toBeInTheDocument()
     })
   })
 
@@ -114,9 +165,9 @@ describe('MiniGameModal', () => {
 
       // Score should be displayed
       expect(screen.getByText(/Score:/)).toBeInTheDocument()
-      // Reward should be displayed (money for france)
+      // Reward should be displayed (food for France)
       expect(screen.getByText(/Reward:/)).toBeInTheDocument()
-      expect(screen.getByText(/money/i)).toBeInTheDocument()
+      expect(screen.getByText(/food/i)).toBeInTheDocument()
     })
 
     it('clicking Collect Reward calls onComplete', () => {

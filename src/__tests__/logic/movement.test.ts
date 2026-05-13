@@ -20,7 +20,7 @@ describe('movement logic', () => {
   })
 
   describe('advanceProgress', () => {
-    const countryDistance = DISTANCE_PER_COUNTRY // 10
+    const countryDistance = DISTANCE_PER_COUNTRY // 20
 
     it('should add movement to current progress', () => {
       const result = advanceProgress(0, 5, countryDistance, 0)
@@ -30,32 +30,33 @@ describe('movement logic', () => {
     })
 
     it('should advance to next country when progress exceeds distance', () => {
-      const result = advanceProgress(5, 8, countryDistance, 0)
-      // 5 + 8 = 13, which is >= 10, so we move to next country
-      // Overflow is 13 - 10 = 3
+      const result = advanceProgress(15, 8, countryDistance, 0)
+      // 15 + 8 = 23, which is >= 20, so we move to next country
+      // Overflow is 23 - 20 = 3
       expect(result.arrivedAtNextCountry).toBe(true)
       expect(result.newCountryIndex).toBe(1)
       expect(result.newProgress).toBe(3)
     })
 
     it('should handle exactly reaching the country border', () => {
-      const result = advanceProgress(5, 5, countryDistance, 0)
-      // 5 + 5 = 10, which is exactly the distance
+      const result = advanceProgress(10, 10, countryDistance, 0)
+      // 10 + 10 = 20, which is exactly the distance
       expect(result.arrivedAtNextCountry).toBe(true)
       expect(result.newCountryIndex).toBe(1)
       expect(result.newProgress).toBe(0)
     })
 
     it('should handle multiple country crossings in one movement', () => {
-      const result = advanceProgress(5, 25, countryDistance, 0)
-      // 5 + 25 = 30, which crosses 3 countries
+      const result = advanceProgress(5, 55, countryDistance, 0)
+      // 5 + 55 = 60, which crosses 3 countries (20 + 20 + 20 = 60)
       expect(result.arrivedAtNextCountry).toBe(true)
       expect(result.newCountryIndex).toBe(3)
       expect(result.newProgress).toBe(0)
     })
 
     it('should start from current country index', () => {
-      const result = advanceProgress(5, 8, countryDistance, 3)
+      const result = advanceProgress(15, 8, countryDistance, 3)
+      // 15 + 8 = 23 >= 20, advances to country 4
       expect(result.newCountryIndex).toBe(4)
     })
 
@@ -67,7 +68,7 @@ describe('movement logic', () => {
     })
 
     it('should cap country index at maximum (9 for 10 countries)', () => {
-      const result = advanceProgress(5, 100, countryDistance, 8)
+      const result = advanceProgress(5, 200, countryDistance, 8)
       // Even with huge movement, can't go past country 9
       expect(result.newCountryIndex).toBeLessThanOrEqual(9)
     })

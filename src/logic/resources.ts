@@ -7,7 +7,7 @@ import {
   MAX_RESOURCES,
 } from '../data/constants'
 import { calculateEngineerBonus } from './crew'
-import type { CrewMember, CrewRole, Resources } from '../types'
+import type { CrewMember, CrewRole, Resources, MaxResources } from '../types'
 
 /**
  * Calculate fuel consumption for a turn
@@ -17,7 +17,8 @@ import type { CrewMember, CrewRole, Resources } from '../types'
 export function calculateFuelConsumption(
   _distance: number,
   trainPower: number,
-  engineerCount: number = 0
+  engineerCount: number = 0,
+  fuelEfficiencyBonus: number = 0
 ): number {
   // Base consumption reduced by train power (higher power = more efficient)
   const efficiency = Math.max(0.5, 1 - (trainPower - 3) * 0.1)
@@ -25,7 +26,8 @@ export function calculateFuelConsumption(
 
   // Apply engineer bonus (reduces fuel consumption)
   const engineerBonus = calculateEngineerBonus(engineerCount)
-  const consumption = baseConsumption - engineerBonus
+  const validCartBonus = Math.max(0, fuelEfficiencyBonus)
+  const consumption = baseConsumption - engineerBonus - validCartBonus
 
   // Ensure fuel consumption never goes below 0
   return Math.max(0, consumption)
@@ -73,12 +75,13 @@ export function getCrewCountByRole(crew: CrewMember[], role: CrewRole): number {
  */
 export function applyResourceChanges(
   current: Resources,
-  changes: Resources
+  changes: Resources,
+  maxResources: MaxResources = MAX_RESOURCES
 ): Resources {
   return {
-    food: Math.min(MAX_RESOURCES.food, Math.max(0, current.food + changes.food)),
-    fuel: Math.min(MAX_RESOURCES.fuel, Math.max(0, current.fuel + changes.fuel)),
-    water: Math.min(MAX_RESOURCES.water, Math.max(0, current.water + changes.water)),
-    money: Math.min(MAX_RESOURCES.money, Math.max(0, current.money + changes.money)),
+    food: Math.min(maxResources.food, Math.max(0, current.food + changes.food)),
+    fuel: Math.min(maxResources.fuel, Math.max(0, current.fuel + changes.fuel)),
+    water: Math.min(maxResources.water, Math.max(0, current.water + changes.water)),
+    money: Math.min(maxResources.money, Math.max(0, current.money + changes.money)),
   }
 }

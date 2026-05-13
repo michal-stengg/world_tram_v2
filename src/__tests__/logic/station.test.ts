@@ -72,6 +72,14 @@ describe('station logic', () => {
         const result = processStationArrival(mockCountry, 0, 50)
         expect(result.moneyEarned).toBe(10) // Just base money
       })
+
+      it('should include extra station income bonuses', () => {
+        const result = processStationArrival(mockCountry, 3, 50, {
+          incomeBonus: 20,
+        })
+
+        expect(result.moneyEarned).toBe(45)
+      })
     })
 
     describe('with different countries', () => {

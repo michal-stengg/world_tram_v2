@@ -25,7 +25,7 @@ export const MAX_TURNS = 100; // Safety limit
 // Movement
 export const DICE_MIN = 0;
 export const DICE_MAX = 10;
-export const DISTANCE_PER_COUNTRY = 10;
+export const DISTANCE_PER_COUNTRY = 20;
 
 // Consumption rates (per turn)
 export const BASE_FUEL_CONSUMPTION = 5;

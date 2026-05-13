@@ -9,8 +9,10 @@ import { STARTING_RESOURCES } from '../../data/constants'
 import { startingCrew } from '../../data/crew'
 
 // Mock the dice roll to get consistent results for testing
+// With DISTANCE_PER_COUNTRY = 20 and train speed = 3, we need movement >= 20
+// So dice roll of 17 + speed 3 = 20, which crosses exactly one country
 vi.mock('../../logic/dice', () => ({
-  rollMovement: () => 10, // Fixed dice roll of 10 to guarantee arrival at new country
+  rollMovement: () => 17, // Fixed dice roll of 17 to guarantee arrival at new country
   rollDice: () => 6, // Fixed dice roll for event resolution
 }))
 
@@ -63,8 +65,8 @@ describe('Phase 6: Station Arrivals Integration', () => {
       const initialState = useGameStore.getState()
       expect(initialState.currentCountryIndex).toBe(0)
 
-      // Execute turn - with mocked dice roll of 10, we should move 10+ distance
-      // which crosses from France to Germany (each country is 10 distance)
+      // Execute turn - with mocked dice roll of 17 + train speed 3 = 20 movement
+      // which crosses from France to Germany (each country is 20 distance)
       const goButton = screen.getByRole('button', { name: /go/i })
       fireEvent.click(goButton)
       act(() => { vi.advanceTimersByTime(1900) })
@@ -127,8 +129,8 @@ describe('Phase 6: Station Arrivals Integration', () => {
       fireEvent.click(goButton)
       act(() => { vi.advanceTimersByTime(1900) })
 
-      // Station reward: BASE_STATION_MONEY (10) + captain.security * SECURITY_MONEY_MULTIPLIER (5)
-      // Renji has security stat of 3, so reward = 10 + 3*5 = 25
+      // Station reward: base money + captain security + security crew income
+      // Renji has security stat 3 and one security crew, so reward = 10 + 3*5 + 5 = 30
       // But we also pay wages which reduces money
       // Let's just verify money changed according to the turn result
       const stateAfterTurn = useGameStore.getState()
@@ -136,10 +138,10 @@ describe('Phase 6: Station Arrivals Integration', () => {
 
       expect(turnResult).not.toBeNull()
       expect(turnResult!.stationReward).toBeDefined()
-      expect(turnResult!.stationReward!.moneyEarned).toBe(25) // 10 + 3*5
+      expect(turnResult!.stationReward!.moneyEarned).toBe(30)
 
       // Verify the station modal shows the correct money reward
-      expect(screen.getByTestId('money-reward')).toHaveTextContent('+$25')
+      expect(screen.getByTestId('money-reward')).toHaveTextContent('+$30')
     })
 
     it('station modal displays correct water refill amount', () => {
@@ -322,14 +324,14 @@ describe('Phase 6: Station Arrivals Integration', () => {
       expect(useGameStore.getState().currentCountryIndex).toBe(0)
       expect(useGameStore.getState().progressInCountry).toBe(0)
 
-      // Execute turn - with dice roll of 10 and Blitzzug speed of 3
-      // Movement = 10 + 3 = 13, which crosses to Germany with progress 3
+      // Execute turn - with dice roll of 17 and Blitzzug speed of 3
+      // Movement = 17 + 3 = 20, which crosses to Germany with progress 0
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
       act(() => { vi.advanceTimersByTime(1900) })
 
       const stateAfterFirstTurn = useGameStore.getState()
       expect(stateAfterFirstTurn.currentCountryIndex).toBe(1) // Germany
-      expect(stateAfterFirstTurn.progressInCountry).toBe(3) // 13 - 10 = 3
+      expect(stateAfterFirstTurn.progressInCountry).toBe(0) // 20 - 20 = 0
 
       // Dismiss modals
       fireEvent.click(screen.getByRole('button', { name: /continue/i }))
@@ -340,9 +342,9 @@ describe('Phase 6: Station Arrivals Integration', () => {
       act(() => { vi.advanceTimersByTime(1900) })
 
       const stateAfterSecondTurn = useGameStore.getState()
-      // Progress 3 + 13 = 16, crosses to Russia with progress 6
+      // Progress 0 + 20 = 20, crosses to Russia with progress 0
       expect(stateAfterSecondTurn.currentCountryIndex).toBe(2) // Russia
-      expect(stateAfterSecondTurn.progressInCountry).toBe(6) // 16 - 10 = 6
+      expect(stateAfterSecondTurn.progressInCountry).toBe(0) // 20 - 20 = 0
     })
   })
 
@@ -373,15 +375,12 @@ describe('Phase 6: Station Arrivals Integration', () => {
   })
 
   describe('station arrival edge cases', () => {
-    it('handles multiple country crossings in single turn correctly', () => {
-      // Set progress at 9, so with movement of 13 (dice 10 + speed 3) we get total 22
-      // 22 distance from progress 9 = crosses France (remaining 1) and Germany (10) = ends in Russia
-      // Actually: progress 9 + movement 13 = 22 total
-      // Crosses at 10 (Germany), then continues 12 more
-      // At 20 crosses again (Russia), ends at progress 2 in Russia
+    it('handles country crossing with carried-over progress correctly', () => {
+      // Set progress at 15, so with movement of 20 (dice 17 + speed 3) we get total 35
+      // 35 distance from start = crosses France at 20, ends in Germany with progress 15
       act(() => {
         useGameStore.setState({
-          progressInCountry: 9,
+          progressInCountry: 15,
           resources: { food: 100, fuel: 200, water: 100, money: 500 },
         })
       })
@@ -392,17 +391,14 @@ describe('Phase 6: Station Arrivals Integration', () => {
       fireEvent.click(screen.getByRole('button', { name: /go/i }))
       act(() => { vi.advanceTimersByTime(1900) })
 
-      // Should show station modal (for the last country arrived at)
+      // Should show station modal (for Germany)
       expect(screen.getByTestId('station-modal')).toBeInTheDocument()
 
-      // With progress 9 + movement 13 = 22 total distance from start of France
-      // Distance to Germany boundary: 10 - 9 = 1
-      // After crossing Germany: 13 - 1 = 12 remaining
-      // Distance to Russia boundary: 10
-      // After crossing Russia: 12 - 10 = 2 remaining (progress in Russia)
-      // So we end up in Russia (index 2) with progress 2
-      expect(useGameStore.getState().currentCountryIndex).toBe(2) // Russia
-      expect(useGameStore.getState().progressInCountry).toBe(2)
+      // With progress 15 + movement 20 = 35 total distance from start of France
+      // Distance to Germany boundary: 20 - 15 = 5
+      // After crossing to Germany: 20 - 5 = 15 remaining progress in Germany
+      expect(useGameStore.getState().currentCountryIndex).toBe(1) // Germany
+      expect(useGameStore.getState().progressInCountry).toBe(15)
     })
 
     it('station rewards show correct values for different captains', async () => {
@@ -421,10 +417,10 @@ describe('Phase 6: Station Arrivals Integration', () => {
       act(() => { vi.advanceTimersByTime(1900) })
 
       // Check station reward calculation for Cooper
-      // Money: 10 + 5*5 = 35
+      // Money: 10 + 5*5 + one security crew * 5 = 40
       const turnResult = useGameStore.getState().lastTurnResult
-      expect(turnResult!.stationReward!.moneyEarned).toBe(35)
-      expect(screen.getByTestId('money-reward')).toHaveTextContent('+$35')
+      expect(turnResult!.stationReward!.moneyEarned).toBe(40)
+      expect(screen.getByTestId('money-reward')).toHaveTextContent('+$40')
     })
   })
 })

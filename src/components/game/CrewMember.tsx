@@ -24,12 +24,15 @@ const roleLabels: Record<CrewRole, string> = {
 const roleTooltips: Record<CrewRole, string> = {
   engineer: 'Engineers reduce fuel consumption',
   cook: 'Cooks produce food each turn',
-  security: 'Security earns more money at stations',
+  security: 'Security reduces event penalties and earns more money at stations',
   free: 'Free crew have no special bonus',
 }
 
+const roleOrder: CrewRole[] = ['engineer', 'cook', 'security', 'free']
+
 export function CrewMember({ member, onRoleClick }: CrewMemberProps) {
   const cycleCrewRole = useGameStore((state) => state.cycleCrewRole)
+  const setCrewRole = useGameStore((state) => state.setCrewRole)
 
   const handleClick = () => {
     cycleCrewRole(member.id)
@@ -70,6 +73,25 @@ export function CrewMember({ member, onRoleClick }: CrewMemberProps) {
     fontSize: '0.875rem',
   }
 
+  const rolePickerStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '0.125rem',
+    width: '100%',
+    marginTop: '0.25rem',
+  }
+
+  const roleButtonStyle = (role: CrewRole): React.CSSProperties => ({
+    border: role === member.role ? '1px solid var(--color-gold, #F7B538)' : '1px solid rgba(255, 255, 255, 0.25)',
+    backgroundColor: role === member.role ? 'rgba(247, 181, 56, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+    color: '#fff',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.75rem',
+    lineHeight: 1,
+    padding: '0.2rem',
+  })
+
   return (
     <motion.div
       style={containerStyle}
@@ -96,6 +118,25 @@ export function CrewMember({ member, onRoleClick }: CrewMemberProps) {
           {roleIcons[member.role]}
         </span>
         <span data-testid={`role-${member.id}`}>{roleLabels[member.role]}</span>
+      </div>
+      <div style={rolePickerStyle} aria-label={`Assign ${member.name} role`}>
+        {roleOrder.map((role) => (
+          <button
+            key={role}
+            type="button"
+            style={roleButtonStyle(role)}
+            title={`Assign ${roleLabels[role]}`}
+            aria-label={`Assign ${member.name} as ${roleLabels[role]}`}
+            data-testid={`assign-${member.id}-${role}`}
+            onClick={(event) => {
+              event.stopPropagation()
+              setCrewRole(member.id, role)
+              onRoleClick?.()
+            }}
+          >
+            {roleIcons[role]}
+          </button>
+        ))}
       </div>
     </motion.div>
   )

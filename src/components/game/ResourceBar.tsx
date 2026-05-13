@@ -1,7 +1,7 @@
 import { ResourceMeter } from '../common/ResourceMeter'
 import { useGameStore } from '../../stores/gameStore'
-import { MAX_RESOURCES } from '../../data/constants'
 import { calculateResourcePreview } from '../../logic/resourcePreview'
+import { getEffectiveMaxResources } from '../../logic/carts'
 
 export function ResourceBar() {
   const resources = useGameStore((state) => state.resources)
@@ -9,8 +9,10 @@ export function ResourceBar() {
   const crew = useGameStore((state) => state.crew)
   const captain = useGameStore((state) => state.selectedCaptain)
   const train = useGameStore((state) => state.selectedTrain)
+  const ownedCarts = useGameStore((state) => state.ownedCarts)
 
-  const preview = calculateResourcePreview(crew, captain, train)
+  const preview = calculateResourcePreview(crew, captain, train, ownedCarts)
+  const maxResources = getEffectiveMaxResources(ownedCarts)
 
   const containerStyle: React.CSSProperties = {
     display: 'flex',
@@ -50,7 +52,7 @@ export function ResourceBar() {
           icon="🍞"
           label="Food"
           current={resources.food}
-          max={MAX_RESOURCES.food}
+          max={maxResources.food}
           color="#3E8914"
           previewDelta={preview.food}
         />
@@ -58,7 +60,7 @@ export function ResourceBar() {
           icon="⛽"
           label="Fuel"
           current={resources.fuel}
-          max={MAX_RESOURCES.fuel}
+          max={maxResources.fuel}
           color="#1B4B8C"
           previewDelta={preview.fuel}
         />
@@ -66,7 +68,7 @@ export function ResourceBar() {
           icon="💧"
           label="Water"
           current={resources.water}
-          max={MAX_RESOURCES.water}
+          max={maxResources.water}
           color="#4A90D9"
           previewDelta={preview.water}
         />
@@ -74,7 +76,7 @@ export function ResourceBar() {
           icon="💰"
           label="Money"
           current={resources.money}
-          max={MAX_RESOURCES.money}
+          max={maxResources.money}
           color="#F7B538"
           previewDelta={preview.money}
         />

@@ -3,6 +3,7 @@
  */
 
 import type { Cart, MaxResources } from '../types'
+import { MAX_RESOURCES } from '../data/constants'
 
 /**
  * Check if a cart can be purchased with the available money
@@ -49,6 +50,13 @@ export function applyCartEffects(ownedCarts: Cart[], baseMaxResources: MaxResour
   }
 
   return result
+}
+
+/**
+ * Calculate the current maximum resources after all owned cart upgrades.
+ */
+export function getEffectiveMaxResources(ownedCarts: Cart[]): MaxResources {
+  return applyCartEffects(ownedCarts, MAX_RESOURCES)
 }
 
 /**

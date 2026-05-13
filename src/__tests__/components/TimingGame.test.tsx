@@ -4,7 +4,7 @@ import { TimingGame } from '../../components/minigames/TimingGame'
 import { getMiniGameByCountryId } from '../../data/minigames'
 
 // Get a timing-type mini-game for testing
-const testMiniGame = getMiniGameByCountryId('germany')! // Beer Stein Balance
+const testMiniGame = getMiniGameByCountryId('japan')! // Sushi Sort
 
 describe('TimingGame', () => {
   const mockOnComplete = vi.fn()
@@ -29,8 +29,8 @@ describe('TimingGame', () => {
         />
       )
 
-      expect(screen.getByText('Beer Stein Balance')).toBeInTheDocument()
-      expect(screen.getByText('🍺')).toBeInTheDocument()
+      expect(screen.getByText('Sushi Sort')).toBeInTheDocument()
+      expect(screen.getByText('🍣')).toBeInTheDocument()
     })
 
     it('shows start button in ready state', () => {

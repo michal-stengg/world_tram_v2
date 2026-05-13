@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { processTurn } from '../../logic/turn'
 import type { GameState } from '../../logic/turn'
-import type { Captain, Train, CrewMember, CargoItem } from '../../types'
+import type { Captain, Train, CrewMember, CargoItem, Cart } from '../../types'
 import { STARTING_RESOURCES } from '../../data/constants'
 import * as eventsModule from '../../logic/events'
 import * as cargoModule from '../../logic/cargo'
@@ -68,6 +68,26 @@ describe('turn processor', () => {
     { id: 'sam', name: 'Sam', role: 'free', avatar: '4' },
   ]
 
+  const sparePartsCart: Cart = {
+    id: 'spare-parts-cart',
+    name: 'Spare Parts Cart',
+    icon: '2',
+    price: 120,
+    effectType: 'fuelEfficiency',
+    effectValue: 2,
+    description: 'Tools and spare parts reduce fuel consumption',
+  }
+
+  const passengerCart: Cart = {
+    id: 'passenger-cart',
+    name: 'Passenger Cart',
+    icon: '3',
+    price: 100,
+    effectType: 'income',
+    effectValue: 20,
+    description: 'Carry passengers for extra income at stations',
+  }
+
   const createGameState = (overrides: Partial<GameState> = {}): GameState => ({
     captain: mockCaptain,
     train: mockTrain,
@@ -123,10 +143,10 @@ describe('turn processor', () => {
     })
 
     it('should advance to next country when enough progress', () => {
-      const state = createGameState({ progressInCountry: 5 })
+      const state = createGameState({ progressInCountry: 15 })
       const result = processTurn(state)
 
-      // Progress 5 + movement 8 = 13, which crosses country border (10)
+      // Progress 15 + movement 8 = 23, which crosses country border (20)
       expect(result.newCountryIndex).toBe(1)
       expect(result.newProgress).toBe(3)
       expect(result.arrivedAtCountry).toBe(true)
@@ -154,6 +174,17 @@ describe('turn processor', () => {
       expect(result.resourceChanges.food).toBe(-5)
     })
 
+    it('should reduce fuel consumption with fuel efficiency carts', () => {
+      const crewWithoutEngineers = mockCrew.map((member) => ({ ...member, role: 'free' as const }))
+      const baseResult = processTurn(createGameState({ crew: crewWithoutEngineers }))
+      const upgradedResult = processTurn(createGameState({
+        crew: crewWithoutEngineers,
+        ownedCarts: [sparePartsCart],
+      }))
+
+      expect(upgradedResult.resourceChanges.fuel).toBe(baseResult.resourceChanges.fuel + 2)
+    })
+
     it('should update resources correctly', () => {
       const state = createGameState()
       const result = processTurn(state)
@@ -176,11 +207,11 @@ describe('turn processor', () => {
     it('should NOT auto-trigger victory when reaching final country (victory triggered via FINISH button)', () => {
       const state = createGameState({
         currentCountryIndex: 8, // Second to last
-        progressInCountry: 5,
+        progressInCountry: 15,
       })
       const result = processTurn(state)
 
-      // Movement 8 + progress 5 = 13, should reach country 9 (final)
+      // Movement 8 + progress 15 = 23, should reach country 9 (final)
       expect(result.newCountryIndex).toBe(9)
       // Victory is now triggered manually via FINISH button, not automatically
       expect(result.gameStatus).toBe('playing')
@@ -207,19 +238,19 @@ describe('turn processor', () => {
     })
 
     it('should handle arriving at station', () => {
-      const state = createGameState({ progressInCountry: 5 })
+      const state = createGameState({ progressInCountry: 15 })
       const result = processTurn(state)
 
-      // Progress 5 + movement 8 = 13, arrives at country 1
+      // Progress 15 + movement 8 = 23, arrives at country 1
       expect(result.arrivedAtCountry).toBe(true)
     })
 
     describe('station arrival rewards', () => {
       it('should include stationReward in TurnResult when arriving at new country', () => {
-        const state = createGameState({ progressInCountry: 5 })
+        const state = createGameState({ progressInCountry: 15 })
         const result = processTurn(state)
 
-        // Progress 5 + movement 8 = 13, arrives at country 1
+        // Progress 15 + movement 8 = 23, arrives at country 1
         expect(result.arrivedAtCountry).toBe(true)
         expect(result.stationReward).toBeDefined()
         expect(result.stationReward).toHaveProperty('waterRefill')
@@ -230,14 +261,14 @@ describe('turn processor', () => {
         const state = createGameState({ progressInCountry: 0 })
         const result = processTurn(state)
 
-        // Progress 0 + movement 8 = 8, still in first country (needs 10)
+        // Progress 0 + movement 8 = 8, still in first country (needs 20)
         expect(result.arrivedAtCountry).toBe(false)
         expect(result.stationReward).toBeUndefined()
       })
 
       it('should refill water when arriving at station', () => {
         const state = createGameState({
-          progressInCountry: 5,
+          progressInCountry: 15,
           resources: { food: 100, fuel: 100, water: 20, money: 200 },
         })
         const result = processTurn(state)
@@ -254,23 +285,34 @@ describe('turn processor', () => {
 
       it('should add money when arriving at station', () => {
         const state = createGameState({
-          progressInCountry: 5,
+          progressInCountry: 15,
           resources: { food: 100, fuel: 100, water: 50, money: 200 },
         })
         const result = processTurn(state)
 
-        // Arriving at station should earn money based on captain security stat
-        // Base 10 + (security 3 * 5) = 25
+        // Arriving at station should earn money based on captain security stat and security crew
+        // Base 10 + (captain security 3 * 5) + (1 security crew * 5) = 30
         expect(result.arrivedAtCountry).toBe(true)
         expect(result.stationReward).toBeDefined()
-        expect(result.stationReward!.moneyEarned).toBe(25)
+        expect(result.stationReward!.moneyEarned).toBe(30)
         // Final money should include wages deduction + station reward
         // Money after changes should reflect the station reward
       })
 
+      it('should add passenger cart income when arriving at station', () => {
+        const result = processTurn(createGameState({
+          progressInCountry: 15,
+          resources: { food: 100, fuel: 100, water: 50, money: 200 },
+          ownedCarts: [passengerCart],
+        }))
+
+        expect(result.arrivedAtCountry).toBe(true)
+        expect(result.stationReward!.moneyEarned).toBe(50)
+      })
+
       it('should apply station rewards to final resources', () => {
         const state = createGameState({
-          progressInCountry: 5,
+          progressInCountry: 15,
           resources: { food: 100, fuel: 100, water: 50, money: 200 },
         })
         const result = processTurn(state)
@@ -404,7 +446,7 @@ describe('turn processor', () => {
       it('should set cargoDiscovered to a valid CargoItem when discovered during travel', () => {
         vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(true)
 
-        // State where we don't arrive at a station (progress 0 + movement 8 < 10)
+        // State where we don't arrive at a station (progress 0 + movement 8 < 20)
         const state = createGameState({ progressInCountry: 0 })
         const result = processTurn(state)
 
@@ -416,8 +458,8 @@ describe('turn processor', () => {
       it('should NOT set cargoDiscovered when arriving at station even if shouldDiscoverCargo returns true', () => {
         vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(true)
 
-        // State where we DO arrive at a station (progress 5 + movement 8 >= 10)
-        const state = createGameState({ progressInCountry: 5 })
+        // State where we DO arrive at a station (progress 15 + movement 8 >= 20)
+        const state = createGameState({ progressInCountry: 15 })
         const result = processTurn(state)
 
         expect(result.arrivedAtCountry).toBe(true)
@@ -443,8 +485,8 @@ describe('turn processor', () => {
         vi.mocked(cargoModule.shouldDiscoverCargo).mockReturnValue(true)
         vi.mocked(cargoModule.selectRandomCargo).mockClear()
 
-        // State where we arrive at a station
-        const state = createGameState({ progressInCountry: 5 })
+        // State where we arrive at a station (progress 15 + movement 8 >= 20)
+        const state = createGameState({ progressInCountry: 15 })
         processTurn(state)
 
         expect(cargoModule.selectRandomCargo).not.toHaveBeenCalled()

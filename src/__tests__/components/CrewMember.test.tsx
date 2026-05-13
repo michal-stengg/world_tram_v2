@@ -150,7 +150,7 @@ describe('CrewMember', () => {
     it('shows tooltip with security effect description', () => {
       render(<CrewMember member={mockSecurity} />)
       const element = screen.getByTestId('crew-member-jack')
-      expect(element).toHaveAttribute('title', 'Security earns more money at stations')
+      expect(element).toHaveAttribute('title', 'Security reduces event penalties and earns more money at stations')
     })
 
     it('shows tooltip with free effect description', () => {
@@ -176,6 +176,14 @@ describe('CrewMember', () => {
 
       fireEvent.click(screen.getByTestId('crew-member-tom'))
       expect(cycleCrewRoleSpy).toHaveBeenCalledWith('tom')
+    })
+
+    it('assigns a specific role with role controls', () => {
+      render(<CrewMember member={mockEngineer} />)
+
+      fireEvent.click(screen.getByTestId('assign-tom-cook'))
+
+      expect(useGameStore.getState().crew.find((member) => member.id === 'tom')?.role).toBe('cook')
     })
 
     it('has pointer cursor style for clickable appearance', () => {
